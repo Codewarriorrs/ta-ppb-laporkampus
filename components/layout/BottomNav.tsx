@@ -8,7 +8,7 @@ import { Home, Building2, Plus, FileText, User } from 'lucide-react';
 export default function BottomNav() {
   const pathname = usePathname();
 
-  // Jangan tampilkan bottom nav di halaman login dan register
+  // Jangan tampilkan di halaman login dan register
   if (pathname === '/login' || pathname === '/register') {
     return null;
   }
@@ -20,13 +20,13 @@ export default function BottomNav() {
   const isProfileActive = pathname === '/profil';
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex justify-center bg-transparent pointer-events-none">
-      <div className="w-full max-w-[480px] bg-white border-t border-gray-200 shadow-lg pointer-events-auto flex items-center justify-around px-2 py-1.5 pb-safe">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center bg-transparent pointer-events-none">
+      <div className="w-full max-w-[480px] bg-white border-t border-slate-200 shadow-lg pointer-events-auto flex items-center justify-around px-2 py-1.5 pb-safe">
         {/* Tab 1: Beranda */}
         <Link
           href="/"
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-            isHomeActive ? 'text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-800'
+            isHomeActive ? 'text-blue-600 font-semibold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Home className={`w-5 h-5 ${isHomeActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
@@ -37,7 +37,7 @@ export default function BottomNav() {
         <Link
           href="/fasilitas"
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-            isFacilitiesActive ? 'text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-800'
+            isFacilitiesActive ? 'text-blue-600 font-semibold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <Building2 className={`w-5 h-5 ${isFacilitiesActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
@@ -60,7 +60,7 @@ export default function BottomNav() {
           </div>
           <span
             className={`text-[11px] mt-0.5 font-semibold ${
-              isReportActive ? 'text-blue-600' : 'text-gray-600'
+              isReportActive ? 'text-blue-600' : 'text-slate-600'
             }`}
           >
             Lapor
@@ -71,7 +71,7 @@ export default function BottomNav() {
         <Link
           href="/laporan-saya"
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-            isMyReportsActive ? 'text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-800'
+            isMyReportsActive ? 'text-blue-600 font-semibold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <FileText className={`w-5 h-5 ${isMyReportsActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
@@ -82,7 +82,7 @@ export default function BottomNav() {
         <Link
           href="/profil"
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-            isProfileActive ? 'text-blue-600 font-semibold' : 'text-gray-500 hover:text-gray-800'
+            isProfileActive ? 'text-blue-600 font-semibold' : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <User className={`w-5 h-5 ${isProfileActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
