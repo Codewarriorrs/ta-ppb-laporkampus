@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
 import { getAuthUserFromRequest } from '@/lib/auth';
+import { localStore } from '@/lib/localStore';
 
 export async function GET(request: Request) {
   try {
@@ -16,6 +17,20 @@ export async function GET(request: Request) {
       );
     }
 
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const reports = localStore.getReportsByUserId(authUser.userId);
+      return NextResponse.json(
+        {
+          success: true,
+          data: reports,
+          message: 'Daftar laporan milik Anda berhasil diambil (mode lokal).',
+        },
+        { status: 200 }
+      );
+    }
+
+    // B. Supabase PostgreSQL
     const { data: reports, error } = await supabaseServer
       .from('reports')
       .select('*, facilities(id, name, building), users(id, name, email)')
@@ -23,7 +38,6 @@ export async function GET(request: Request) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching my reports:', error);
       return NextResponse.json(
         {
           success: false,

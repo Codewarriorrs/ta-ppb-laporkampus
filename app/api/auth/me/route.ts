@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthUserFromRequest } from '@/lib/auth';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
+import { localStore } from '@/lib/localStore';
 
 export async function GET(request: Request) {
   try {
@@ -17,7 +18,36 @@ export async function GET(request: Request) {
       );
     }
 
-    // Ambil data profil terbaru dari database
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const user = localStore.findUserById(authUser.userId);
+      if (!user) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Pengguna tidak ditemukan.',
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            created_at: user.created_at,
+          },
+          message: 'Data sesi pengguna berhasil dimuat.',
+        },
+        { status: 200 }
+      );
+    }
+
+    // B. Supabase PostgreSQL
     const { data: user, error } = await supabaseServer
       .from('users')
       .select('id, name, email, created_at')

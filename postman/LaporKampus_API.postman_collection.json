@@ -1,0 +1,150 @@
+{
+  "info": {
+    "name": "LaporKampus API Collection",
+    "description": "Koleksi Postman untuk pengujian RESTful API Tugas Akhir Praktikum PPB - LaporKampus",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Autentikasi",
+      "item": [
+        {
+          "name": "POST Register Akun",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mahasiswa Test\",\n  \"email\": \"test@kampus.ac.id\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "POST Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"zaidan@kampus.ac.id\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "GET Current User (Me)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/auth/me", "host": ["{{base_url}}"], "path": ["api", "auth", "me"] }
+          }
+        },
+        {
+          "name": "POST Logout",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{base_url}}/api/auth/logout", "host": ["{{base_url}}"], "path": ["api", "auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Fasilitas",
+      "item": [
+        {
+          "name": "GET Semua Fasilitas",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/facilities", "host": ["{{base_url}}"], "path": ["api", "facilities"] }
+          }
+        },
+        {
+          "name": "GET Detail Fasilitas",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/facilities/f0000000-0000-0000-0000-000000000001", "host": ["{{base_url}}"], "path": ["api", "facilities", "f0000000-0000-0000-0000-000000000001"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Laporan Kerusakan",
+      "item": [
+        {
+          "name": "GET Semua Laporan",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/reports", "host": ["{{base_url}}"], "path": ["api", "reports"] }
+          }
+        },
+        {
+          "name": "GET Filter Laporan (Search & Kategori)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/reports?q=AC&category=AC",
+              "host": ["{{base_url}}"],
+              "path": ["api", "reports"],
+              "query": [
+                { "key": "q", "value": "AC" },
+                { "key": "category", "value": "AC" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST Buat Laporan Baru",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"facility_id\": \"f0000000-0000-0000-0000-000000000001\",\n  \"category\": \"AC\",\n  \"title\": \"AC Mengeluarkan Bunyi Berisik di Lab\",\n  \"description\": \"Unit AC nomor 1 di lab mengeluarkan suara decit keras saat kipas berputar.\",\n  \"photo_url\": \"https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=800\",\n  \"latitude\": -7.05041,\n  \"longitude\": 110.43512\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/reports", "host": ["{{base_url}}"], "path": ["api", "reports"] }
+          }
+        },
+        {
+          "name": "GET Laporan Saya",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/reports/mine", "host": ["{{base_url}}"], "path": ["api", "reports", "mine"] }
+          }
+        },
+        {
+          "name": "GET Detail Laporan",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/reports/r0000000-0000-0000-0000-000000000001", "host": ["{{base_url}}"], "path": ["api", "reports", "r0000000-0000-0000-0000-000000000001"] }
+          }
+        },
+        {
+          "name": "PUT Update Laporan",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AC Lab Mati Total dan Mengeluarkan Bau Gosong (Urgent)\",\n  \"description\": \"Kondisi semakin parah, mohon segera ditangani hari ini.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/reports/r0000000-0000-0000-0000-000000000001", "host": ["{{base_url}}"], "path": ["api", "reports", "r0000000-0000-0000-0000-000000000001"] }
+          }
+        },
+        {
+          "name": "DELETE Hapus Laporan",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{base_url}}/api/reports/r0000000-0000-0000-0000-000000000001", "host": ["{{base_url}}"], "path": ["api", "reports", "r0000000-0000-0000-0000-000000000001"] }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}

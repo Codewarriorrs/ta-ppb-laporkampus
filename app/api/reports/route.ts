@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
 import { getAuthUserFromRequest } from '@/lib/auth';
-import { CATEGORIES } from '@/types';
+import { localStore } from '@/lib/localStore';
 
 const reportSchema = z.object({
-  facility_id: z.string().uuid('ID fasilitas tidak valid'),
+  facility_id: z.string().min(1, 'ID fasilitas wajib dipilih'),
   category: z.enum(
     ['AC', 'Lampu', 'Kursi/Meja', 'Toilet', 'Proyektor', 'Jaringan/WiFi', 'Lainnya'],
     { errorMap: () => ({ message: 'Kategori tidak valid' }) }
@@ -23,6 +23,20 @@ export async function GET(request: Request) {
     const q = searchParams.get('q') || '';
     const category = searchParams.get('category') || '';
 
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const reports = localStore.getReports(q, category);
+      return NextResponse.json(
+        {
+          success: true,
+          data: reports,
+          message: 'Daftar laporan berhasil diambil (mode lokal).',
+        },
+        { status: 200 }
+      );
+    }
+
+    // B. Supabase PostgreSQL
     let query = supabaseServer
       .from('reports')
       .select('*, facilities(id, name, building), users(id, name, email)')
@@ -33,14 +47,12 @@ export async function GET(request: Request) {
     }
 
     if (q) {
-      // Pencarian pada judul atau deskripsi
       query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
     }
 
     const { data: reports, error } = await query;
 
     if (error) {
-      console.error('Error fetching reports:', error);
       return NextResponse.json(
         {
           success: false,
@@ -110,7 +122,47 @@ export async function POST(request: Request) {
     const { facility_id, category, title, description, photo_url, latitude, longitude } =
       validatedData.data;
 
-    // Verifikasi keberadaan fasilitas
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const facility = localStore.getFacilityById(facility_id);
+      if (!facility) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Fasilitas yang dipilih tidak ditemukan dalam sistem.',
+          },
+          { status: 400 }
+        );
+      }
+
+      const newReport = localStore.addReport({
+        id: `r-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        user_id: authUser.userId,
+        facility_id,
+        category,
+        title,
+        description,
+        photo_url: photo_url || null,
+        latitude: latitude !== undefined ? latitude : null,
+        longitude: longitude !== undefined ? longitude : null,
+        created_at: new Date().toISOString(),
+        facility_name: facility.name,
+        facility_building: facility.building,
+        user_name: authUser.name,
+      });
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: newReport,
+          message: 'Laporan fasilitas kampus berhasil dikirim!',
+        },
+        { status: 201 }
+      );
+    }
+
+    // B. Supabase PostgreSQL
     const { data: facility, error: facErr } = await supabaseServer
       .from('facilities')
       .select('id, name')
@@ -144,7 +196,6 @@ export async function POST(request: Request) {
       .single();
 
     if (insertError || !newReport) {
-      console.error('Error insert report:', insertError);
       return NextResponse.json(
         {
           success: false,
@@ -171,7 +222,6 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('Error in POST /api/reports:', error);
     return NextResponse.json(
       {
         success: false,

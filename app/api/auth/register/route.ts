@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
 import { hashPassword, signToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { localStore } from '@/lib/localStore';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nama minimal 2 karakter'),
@@ -28,7 +29,62 @@ export async function POST(request: Request) {
 
     const { name, email, password } = validatedData.data;
 
-    // Cek apakah email sudah terdaftar
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const existing = localStore.findUserByEmail(email);
+      if (existing) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Email sudah terdaftar. Silakan login atau gunakan email lain.',
+          },
+          { status: 409 }
+        );
+      }
+
+      const password_hash = await hashPassword(password);
+      const newUser = localStore.addUser({
+        id: `u-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        name,
+        email: email.toLowerCase(),
+        password_hash,
+        created_at: new Date().toISOString(),
+      });
+
+      const token = await signToken({
+        userId: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+      });
+
+      const response = NextResponse.json(
+        {
+          success: true,
+          data: {
+            user: {
+              id: newUser.id,
+              name: newUser.name,
+              email: newUser.email,
+            },
+          },
+          message: 'Registrasi berhasil! Selamat datang di LaporKampus.',
+        },
+        { status: 201 }
+      );
+
+      response.cookies.set(AUTH_COOKIE_NAME, token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      return response;
+    }
+
+    // B. Supabase PostgreSQL
     const { data: existingUser } = await supabaseServer
       .from('users')
       .select('id, email')
@@ -46,7 +102,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash password dan simpan user baru
     const password_hash = await hashPassword(password);
     const { data: newUser, error: insertError } = await supabaseServer
       .from('users')
@@ -59,7 +114,6 @@ export async function POST(request: Request) {
       .single();
 
     if (insertError || !newUser) {
-      console.error('Error insert user to Supabase:', insertError);
       return NextResponse.json(
         {
           success: false,
@@ -70,7 +124,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Buat JWT token dan set cookie
     const token = await signToken({
       userId: newUser.id,
       name: newUser.name,
@@ -97,12 +150,11 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 hari
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return response;
   } catch (error: any) {
-    console.error('Error register API:', error);
     return NextResponse.json(
       {
         success: false,

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
 import { getAuthUserFromRequest } from '@/lib/auth';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -57,14 +57,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate nama berkas unik
-    const fileExt = file.name.split('.').pop() || 'jpg';
-    const fileName = `${authUser.userId}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Unggah ke Supabase Storage pada bucket 'reports'
+    // A. Fallback jika Supabase Storage belum dikonfigurasi: kembalikan Data URL base64
+    if (!isSupabaseConfigured) {
+      const base64Data = buffer.toString('base64');
+      const dataUrl = `data:${file.type};base64,${base64Data}`;
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            url: dataUrl,
+            path: 'local-memory',
+          },
+          message: 'Foto bukti laporan berhasil diunggah (mode lokal).',
+        },
+        { status: 200 }
+      );
+    }
+
+    // B. Supabase Storage bucket 'reports'
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const fileName = `${authUser.userId}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+
     const { data: uploadData, error: uploadError } = await supabaseServer.storage
       .from('reports')
       .upload(fileName, buffer, {
@@ -73,7 +90,6 @@ export async function POST(request: Request) {
       });
 
     if (uploadError) {
-      console.error('Error upload file to Supabase Storage:', uploadError);
       return NextResponse.json(
         {
           success: false,
@@ -86,7 +102,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Dapatkan URL publik dari berkas yang diunggah
     const { data: publicUrlData } = supabaseServer.storage
       .from('reports')
       .getPublicUrl(uploadData.path);
@@ -98,12 +113,11 @@ export async function POST(request: Request) {
           url: publicUrlData.publicUrl,
           path: uploadData.path,
         },
-        message: 'Foto bukti laporan berhasil diunggah.',
+        message: 'Foto bukti laporan berhasil diunggah ke Supabase Storage.',
       },
       { status: 200 }
     );
   } catch (error: any) {
-    console.error('Upload handler error:', error);
     return NextResponse.json(
       {
         success: false,

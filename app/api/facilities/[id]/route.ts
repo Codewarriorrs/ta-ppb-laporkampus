@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
+import { localStore } from '@/lib/localStore';
 
 export async function GET(
   request: Request,
@@ -8,7 +9,37 @@ export async function GET(
   try {
     const { id } = params;
 
-    // Ambil detail fasilitas
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const facility = localStore.getFacilityById(id);
+      if (!facility) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Fasilitas tidak ditemukan.',
+          },
+          { status: 404 }
+        );
+      }
+
+      const reports = localStore.getReportsByFacilityId(id);
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            ...facility,
+            report_count: reports.length,
+            reports,
+          },
+          message: 'Detail fasilitas dan laporan terkait berhasil diambil (mode lokal).',
+        },
+        { status: 200 }
+      );
+    }
+
+    // B. Supabase PostgreSQL
     const { data: facility, error: facError } = await supabaseServer
       .from('facilities')
       .select('*')
@@ -26,8 +57,7 @@ export async function GET(
       );
     }
 
-    // Ambil laporan yang terkait dengan fasilitas ini
-    const { data: reports, error: repError } = await supabaseServer
+    const { data: reports } = await supabaseServer
       .from('reports')
       .select('*, users(id, name, email)')
       .eq('facility_id', id)

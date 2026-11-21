@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
 import { comparePassword, signToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { localStore } from '@/lib/localStore';
 
 const loginSchema = z.object({
   email: z.string().email('Format email tidak valid'),
@@ -27,14 +28,28 @@ export async function POST(request: Request) {
 
     const { email, password } = validatedData.data;
 
-    // Cari user di database
-    const { data: user, error: queryError } = await supabaseServer
-      .from('users')
-      .select('id, name, email, password_hash')
-      .eq('email', email.toLowerCase())
-      .single();
+    let user: { id: string; name: string; email: string; password_hash: string } | null = null;
 
-    if (queryError || !user) {
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const found = localStore.findUserByEmail(email);
+      if (found) {
+        user = found;
+      }
+    } else {
+      // B. Supabase PostgreSQL
+      const { data: dbUser } = await supabaseServer
+        .from('users')
+        .select('id, name, email, password_hash')
+        .eq('email', email.toLowerCase())
+        .single();
+
+      if (dbUser) {
+        user = dbUser;
+      }
+    }
+
+    if (!user) {
       return NextResponse.json(
         {
           success: false,
@@ -91,7 +106,6 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error: any) {
-    console.error('Error login API:', error);
     return NextResponse.json(
       {
         success: false,

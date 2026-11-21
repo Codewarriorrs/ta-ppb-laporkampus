@@ -1,16 +1,41 @@
 import { NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
+import { localStore } from '@/lib/localStore';
 
 export async function GET() {
   try {
-    // Ambil semua data fasilitas diurutkan berdasarkan nama
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const facilities = localStore.getFacilities();
+      const reports = localStore.getReports();
+
+      const counts: Record<string, number> = {};
+      for (const r of reports) {
+        counts[r.facility_id] = (counts[r.facility_id] || 0) + 1;
+      }
+
+      const facilitiesWithCount = facilities.map((f) => ({
+        ...f,
+        report_count: counts[f.id] || 0,
+      }));
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: facilitiesWithCount,
+          message: 'Daftar fasilitas berhasil diambil (mode lokal).',
+        },
+        { status: 200 }
+      );
+    }
+
+    // B. Supabase PostgreSQL
     const { data: facilities, error: facError } = await supabaseServer
       .from('facilities')
       .select('*')
       .order('name', { ascending: true });
 
     if (facError) {
-      console.error('Error fetching facilities:', facError);
       return NextResponse.json(
         {
           success: false,
@@ -21,10 +46,7 @@ export async function GET() {
       );
     }
 
-    // Ambil jumlah laporan untuk masing-masing fasilitas
-    const { data: reports, error: repError } = await supabaseServer
-      .from('reports')
-      .select('facility_id');
+    const { data: reports } = await supabaseServer.from('reports').select('facility_id');
 
     const counts: Record<string, number> = {};
     if (reports) {

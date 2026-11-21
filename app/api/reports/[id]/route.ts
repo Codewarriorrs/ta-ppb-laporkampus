@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { supabaseServer } from '@/lib/supabase';
+import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
 import { getAuthUserFromRequest } from '@/lib/auth';
+import { localStore } from '@/lib/localStore';
 
 const updateReportSchema = z.object({
-  facility_id: z.string().uuid('ID fasilitas tidak valid').optional(),
+  facility_id: z.string().optional(),
   category: z
     .enum(['AC', 'Lampu', 'Kursi/Meja', 'Toilet', 'Proyektor', 'Jaringan/WiFi', 'Lainnya'])
     .optional(),
@@ -22,6 +23,31 @@ export async function GET(
   try {
     const { id } = params;
 
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const report = localStore.getReportById(id);
+      if (!report) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Laporan tidak ditemukan.',
+          },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: report,
+          message: 'Detail laporan berhasil diambil (mode lokal).',
+        },
+        { status: 200 }
+      );
+    }
+
+    // B. Supabase PostgreSQL
     const { data: report, error } = await supabaseServer
       .from('reports')
       .select('*, facilities(id, name, building, description), users(id, name, email)')
@@ -84,8 +110,68 @@ export async function PUT(
     }
 
     const { id } = params;
+    const body = await request.json();
+    const validatedData = updateReportSchema.safeParse(body);
 
-    // Cek laporan yang ada dan pastikan pemiliknya adalah user yang login
+    if (!validatedData.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          message: validatedData.error.errors[0]?.message || 'Data update tidak valid',
+          error: validatedData.error.flatten(),
+        },
+        { status: 400 }
+      );
+    }
+
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const existing = localStore.getReportById(id);
+      if (!existing) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Laporan tidak ditemukan.',
+          },
+          { status: 404 }
+        );
+      }
+
+      if (existing.user_id !== authUser.userId) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Akses ditolak: Anda hanya dapat mengedit laporan buatan Anda sendiri.',
+          },
+          { status: 403 }
+        );
+      }
+
+      const updateData: any = { ...validatedData.data };
+      if (validatedData.data.facility_id) {
+        const fac = localStore.getFacilityById(validatedData.data.facility_id);
+        if (fac) {
+          updateData.facility_name = fac.name;
+          updateData.facility_building = fac.building;
+        }
+      }
+
+      const updated = localStore.updateReport(id, updateData);
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: updated,
+          message: 'Laporan berhasil diperbarui.',
+        },
+        { status: 200 }
+      );
+    }
+
+    // B. Supabase PostgreSQL
     const { data: existingReport, error: fetchError } = await supabaseServer
       .from('reports')
       .select('id, user_id')
@@ -114,22 +200,6 @@ export async function PUT(
       );
     }
 
-    const body = await request.json();
-    const validatedData = updateReportSchema.safeParse(body);
-
-    if (!validatedData.success) {
-      return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: validatedData.error.errors[0]?.message || 'Data update tidak valid',
-          error: validatedData.error.flatten(),
-        },
-        { status: 400 }
-      );
-    }
-
-    // Jika facility_id diubah, verifikasi keberadaannya
     if (validatedData.data.facility_id) {
       const { data: facCheck } = await supabaseServer
         .from('facilities')
@@ -166,7 +236,6 @@ export async function PUT(
       .single();
 
     if (updateError || !updatedReport) {
-      console.error('Error update report:', updateError);
       return NextResponse.json(
         {
           success: false,
@@ -223,10 +292,47 @@ export async function DELETE(
 
     const { id } = params;
 
-    // Cek laporan yang ada
+    // A. Fallback Local Data Store
+    if (!isSupabaseConfigured) {
+      const existing = localStore.getReportById(id);
+      if (!existing) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Laporan tidak ditemukan.',
+          },
+          { status: 404 }
+        );
+      }
+
+      if (existing.user_id !== authUser.userId) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Akses ditolak: Anda hanya dapat menghapus laporan milik Anda sendiri.',
+          },
+          { status: 403 }
+        );
+      }
+
+      localStore.deleteReport(id);
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: null,
+          message: 'Laporan berhasil dihapus.',
+        },
+        { status: 200 }
+      );
+    }
+
+    // B. Supabase PostgreSQL
     const { data: existingReport, error: fetchError } = await supabaseServer
       .from('reports')
-      .select('id, user_id, photo_url')
+      .select('id, user_id')
       .eq('id', id)
       .single();
 
@@ -252,11 +358,7 @@ export async function DELETE(
       );
     }
 
-    // Hapus laporan dari database
-    const { error: deleteError } = await supabaseServer
-      .from('reports')
-      .delete()
-      .eq('id', id);
+    const { error: deleteError } = await supabaseServer.from('reports').delete().eq('id', id);
 
     if (deleteError) {
       return NextResponse.json(
