@@ -1,27 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --color-primary: #1A3F8F;
-  --color-primary-light: #2356C4;
-  --color-primary-dark: #0F2660;
-  --color-accent: #F5C400;
-  --color-accent-dark: #C49B00;
-  --color-neutral-50: #F7F8FC;
-  --color-neutral-100: #E8ECF4;
-  --color-neutral-200: #D1D7E6;
-  --color-neutral-400: #9099AE;
-  --color-neutral-700: #3D4560;
-  --color-neutral-900: #111827;
+  --color-primary: #6d5ae6;
+  --color-primary-hover: #5b47dc;
+  --color-primary-dark: #4b37be;
+  --color-background: #eef1fb;
+  --color-surface: #ffffff;
+  --color-surface-strong: #f6f4ff;
+  --color-text: #2d2a45;
+  --color-text-muted: #6b6690;
+  --color-accent: #ff9e7d;
+  --color-mint: #7be0c4;
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #F7F8FC;
-  color: #3D4560;
+  font-family: 'Quicksand', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: #eef1fb;
+  color: #2d2a45;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
@@ -30,23 +29,50 @@ input, textarea, select {
   user-select: text;
 }
 
-/* Custom scrollbar halus */
+/* Custom soft scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D1D7E6;
-  border-radius: 4px;
+  background: #c7cee5;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #9099AE;
+  background: #9fa8c7;
 }
 
 /* Safe area padding untuk mobile notch / bottom nav */
 .pb-safe {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Soft 3D Glow & Ambient Shading helpers */
+.soft-3d-card {
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 16px 36px -10px rgba(109, 90, 230, 0.12), 0 4px 16px -2px rgba(45, 42, 69, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.soft-3d-button {
+  background: #6d5ae6;
+  color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px -4px rgba(109, 90, 230, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.soft-3d-button:hover {
+  background: #5b47dc;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -4px rgba(109, 90, 230, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.soft-3d-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 12px -2px rgba(109, 90, 230, 0.4);
 }

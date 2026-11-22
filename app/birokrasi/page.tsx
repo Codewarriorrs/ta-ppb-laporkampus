@@ -198,7 +198,7 @@ export default function BirokrasiDashboardPage() {
             <div className="flex-1">
               <span className="font-bold text-white">Mode Pratinjau Penguji Responsi:</span>
               <span className="text-white/90 ml-1">
-                Akun aktif Anda ({currentUser?.name}) berstatus <strong>Mahasiswa</strong>. Untuk mendemokan hak akses Birokrasi, Anda dapat login dengan akun seed: <strong>budi@kampus.ac.id</strong> (Password: <strong>password123</strong>).
+                Akun aktif Anda ({currentUser?.name}) berstatus <strong>Mahasiswa</strong>. Untuk mendemokan hak akses Birokrasi, Anda dapat login dengan akun: <strong>budi@kampus.ac.id</strong> (Password: <strong>birokrasi123</strong>).
               </span>
             </div>
           </div>

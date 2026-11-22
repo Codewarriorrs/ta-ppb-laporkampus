@@ -34,11 +34,11 @@ export default function ReportCard({ report }: ReportCardProps) {
   return (
     <Link
       href={`/laporan/${report.id}`}
-      className="block bg-white rounded-2xl border border-neutral-100 shadow-xs hover:border-neutral-200 hover:shadow-md transition-all duration-200 active:scale-[0.99] overflow-hidden group"
+      className="block bg-surface rounded-[24px] border border-white/80 ring-1 ring-neutral-200/60 shadow-card-3d hover:shadow-soft-3d hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.99] overflow-hidden group"
     >
-      <div className="flex p-3.5 sm:p-4 gap-3.5">
+      <div className="flex p-4 gap-4">
         {/* Foto Thumbnail */}
-        <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 bg-neutral-50 rounded-xl overflow-hidden border border-neutral-100">
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 bg-neutral-100/70 rounded-[18px] overflow-hidden border border-neutral-200/60">
           {report.photo_url ? (
             <img
               src={report.photo_url}
@@ -62,26 +62,26 @@ export default function ReportCard({ report }: ReportCardProps) {
                 <CategoryBadge category={report.category} />
                 <StatusBadge status={report.status} isOffline={report.is_offline} />
               </div>
-              <span className="text-[10px] text-neutral-400 flex items-center gap-1 font-medium">
+              <span className="text-[10px] text-neutral-400 flex items-center gap-1 font-medium font-sans">
                 <Calendar className="w-3 h-3" />
                 {formatTimeAgo(report.created_at)}
               </span>
             </div>
 
-            <h3 className="font-bold text-neutral-900 text-sm line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+            <h3 className="font-extrabold text-neutral-900 text-sm line-clamp-2 group-hover:text-primary transition-colors leading-snug font-display">
               {report.title}
             </h3>
           </div>
 
           <div>
             {report.feedback && (
-              <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-primary font-semibold truncate bg-primary/5 px-2 py-0.5 rounded-md border border-primary/10">
+              <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-primary font-semibold truncate bg-surface-strong px-2.5 py-1 rounded-[12px] border border-primary/15">
                 <MessageSquare className="w-3 h-3 shrink-0" />
                 <span className="truncate">Ditanggapi: &ldquo;{report.feedback}&rdquo;</span>
               </div>
             )}
 
-            <div className="mt-2 pt-2 border-t border-neutral-100 flex items-center text-xs text-neutral-600 line-clamp-1 gap-1.5">
+            <div className="mt-2 pt-2 border-t border-neutral-100 flex items-center text-xs text-neutral-600 line-clamp-1 gap-1.5 font-sans">
               <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-primary" />
               <span className="truncate font-semibold text-neutral-700">
                 {report.facility_name || 'Fasilitas Kampus'}

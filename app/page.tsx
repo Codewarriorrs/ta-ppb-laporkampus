@@ -5,9 +5,10 @@ import { Report, CATEGORIES } from '@/types';
 import ReportCard from '@/components/report/ReportCard';
 import { ReportCardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
-import { Search, ShieldAlert, RefreshCw, AlertCircle, Sparkles, Building2, LayoutDashboard, Plus } from 'lucide-react';
+import { Search, RefreshCw, AlertCircle, LayoutDashboard, Plus, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { getOfflineReports, offlineItemToReport } from '@/lib/offlineQueue';
+import AppLogo, { AppLogoIcon } from '@/components/ui/AppLogo';
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -48,7 +49,7 @@ export default function HomePage() {
       setReports(json.data || []);
     } catch (err: any) {
       if (!navigator.onLine) {
-        setError('Mode Offline: Memuat data dari cache lokal.');
+        setError('Mode Offline: Memuat data dari cache lokal perangkat.');
       } else {
         setError(err.message || 'Terjadi kesalahan saat memuat laporan');
       }
@@ -75,29 +76,17 @@ export default function HomePage() {
   const combinedReports = [...offlineReports, ...reports];
 
   return (
-    <div className="flex-1 flex flex-col bg-neutral-50 pb-12">
+    <div className="flex-1 flex flex-col bg-background pb-16 min-h-screen">
       {/* ── MOBILE TOP HEADER (< md) ── */}
-      <header className="md:hidden sticky top-0 z-30 bg-white border-b border-neutral-100 px-4 py-3 shadow-xs">
+      <header className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-neutral-200/70 px-4 py-3 shadow-soft-3d">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary/20">
-              <ShieldAlert className="w-5 h-5 stroke-[2.2]" />
-            </div>
-            <div>
-              <h1 className="text-sm font-extrabold text-neutral-900 tracking-tight leading-tight">
-                LaporKampus
-              </h1>
-              <p className="text-[10px] text-neutral-400 font-semibold">
-                Sistem Sarana & Prasarana
-              </p>
-            </div>
-          </div>
+          <AppLogo size="sm" withSubtitle={false} />
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => fetchReports(searchQuery, selectedCategory)}
               aria-label="Refresh Data"
-              className="p-2 text-neutral-400 hover:text-primary hover:bg-neutral-50 rounded-xl transition-colors"
+              className="p-2 text-neutral-400 hover:text-primary hover:bg-neutral-100 rounded-[12px] transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -105,15 +94,15 @@ export default function HomePage() {
         </div>
 
         {/* Mobile Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="mt-3">
+        <form onSubmit={handleSearchSubmit} className="mt-2.5">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari kerusakan atau fasilitas..."
-              className="w-full pl-9 pr-4 py-2 bg-neutral-50 focus:bg-white text-xs font-medium rounded-xl border border-neutral-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-neutral-900 placeholder-neutral-400 transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 focus:bg-white text-xs font-semibold rounded-[16px] border border-neutral-200/80 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-neutral-900 placeholder-neutral-400 transition-all font-sans"
             />
           </div>
         </form>
@@ -122,10 +111,10 @@ export default function HomePage() {
         <div className="flex items-center gap-1.5 overflow-x-auto py-2 -mx-4 px-4 no-scrollbar mt-1 border-t border-neutral-100">
           <button
             onClick={() => setSelectedCategory('Semua')}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex-shrink-0 px-3.5 py-1.5 rounded-[14px] text-xs font-bold transition-all ${
               selectedCategory === 'Semua'
-                ? 'bg-primary text-white shadow-xs'
-                : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-100'
+                ? 'bg-primary text-white shadow-btn-3d'
+                : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200/60'
             }`}
           >
             Semua
@@ -134,10 +123,10 @@ export default function HomePage() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-[14px] text-xs font-bold transition-all ${
                 selectedCategory === cat
-                  ? 'bg-primary text-white shadow-xs'
-                  : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-neutral-100'
+                  ? 'bg-primary text-white shadow-btn-3d'
+                  : 'bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200/60'
               }`}
             >
               {cat}
@@ -146,37 +135,41 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ── DESKTOP HERO & GREETING BANNER (Bergaya lms-nkgts) ── */}
-      <div className="hidden md:block bg-white border-b border-neutral-100 py-8 px-6 mb-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
-          <div className="space-y-1.5">
+      {/* ── DESKTOP HERO & GREETING BANNER (Soft 3D Illustration) ── */}
+      <div className="hidden md:block px-6 pt-8 pb-4">
+        <div className="max-w-6xl mx-auto bg-white rounded-[32px] p-8 shadow-card-3d border border-white/80 flex items-center justify-between gap-8 relative overflow-hidden">
+          {/* Ambient Soft Glow Orbs */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-primary-100/50 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+          <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-accent-light/40 rounded-full blur-3xl pointer-events-none -mb-20" />
+
+          <div className="space-y-3 relative z-10 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+              <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-surface-strong text-primary border border-primary/20">
                 Pusat Pelaporan Kampus
               </span>
-              <span className="text-[10px] font-bold text-neutral-400">
-                • Update Terkini
+              <span className="text-[11px] font-bold text-neutral-400 font-sans">
+                • Pantau & Jaga Sarpras Bersama
               </span>
             </div>
-            <h2 className="text-2xl font-extrabold text-neutral-900 tracking-tight">
+            <h2 className="text-3xl font-extrabold text-neutral-900 tracking-tight font-display leading-tight">
               {getGreeting()}, Selamat Datang di LaporKampus
             </h2>
-            <p className="text-xs text-neutral-500 max-w-xl">
-              Laporkan kendala fasilitas di laboratorium, ruang kuliah, perpustakaan, hingga sanitasi kampus agar segera ditindaklanjuti oleh birokrasi sarpras.
+            <p className="text-xs sm:text-sm text-neutral-500 font-sans leading-relaxed">
+              Laporkan kendala fasilitas di ruang kuliah, lab komputer, perpustakaan, hingga sanitasi kampus agar lekas ditindaklanjuti oleh pihak birokrasi sarpras.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 relative z-10">
             <Link
               href="/birokrasi"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold rounded-xl border border-neutral-200 transition-all"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-surface-strong hover:bg-neutral-100 text-neutral-800 text-xs font-bold rounded-[18px] border border-neutral-200/70 transition-all shadow-soft-3d"
             >
               <LayoutDashboard className="w-4 h-4 text-primary" />
               <span>Dashboard Birokrasi</span>
             </Link>
             <Link
               href="/lapor"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white text-xs font-bold rounded-xl shadow-md shadow-primary/20 transition-all active:scale-95"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-[18px] shadow-btn-3d transition-all active:scale-95"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>Buat Laporan Baru</span>
@@ -187,7 +180,7 @@ export default function HomePage() {
 
       {/* ── DESKTOP FILTER BAR ── */}
       <div className="hidden md:block px-6 mb-6">
-        <div className="max-w-6xl mx-auto bg-white rounded-2xl border border-neutral-100 p-4 shadow-xs flex items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto bg-white rounded-[24px] border border-white/80 p-4 shadow-soft-3d flex items-center justify-between gap-4">
           {/* Search */}
           <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
@@ -195,19 +188,19 @@ export default function HomePage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari laporan kerusakan, AC, proyektor, atau fasilitas..."
-              className="w-full pl-10 pr-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-medium text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              placeholder="Cari kerusakan, proyektor, AC, atau fasilitas..."
+              className="w-full pl-10 pr-4 py-2.5 bg-neutral-50 border border-neutral-200/80 rounded-[16px] text-xs font-semibold text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-sans"
             />
           </form>
 
-          {/* Kategori Filters */}
+          {/* Kategori Filters Soft 3D Chips */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setSelectedCategory('Semua')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-4 py-2 rounded-[16px] text-xs font-bold transition-all ${
                 selectedCategory === 'Semua'
-                  ? 'bg-primary text-white shadow-xs'
-                  : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 border border-neutral-100'
+                  ? 'bg-primary text-white shadow-btn-3d font-extrabold'
+                  : 'bg-neutral-50 text-neutral-600 hover:bg-white hover:text-neutral-900 border border-neutral-200/60'
               }`}
             >
               Semua
@@ -216,10 +209,10 @@ export default function HomePage() {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                className={`px-4 py-2 rounded-[16px] text-xs font-bold transition-all whitespace-nowrap ${
                   selectedCategory === cat
-                    ? 'bg-primary text-white shadow-xs'
-                    : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 border border-neutral-100'
+                    ? 'bg-primary text-white shadow-btn-3d font-extrabold'
+                    : 'bg-neutral-50 text-neutral-600 hover:bg-white hover:text-neutral-900 border border-neutral-200/60'
                 }`}
               >
                 {cat}
@@ -230,8 +223,8 @@ export default function HomePage() {
       </div>
 
       {/* ── MAIN CONTENT (REPORT LIST) ── */}
-      <div className="flex-1 p-4 md:px-6 space-y-4">
-        <div className="flex items-center justify-between text-xs text-neutral-500 font-bold px-1">
+      <div className="flex-1 px-4 md:px-6 max-w-6xl mx-auto w-full space-y-4">
+        <div className="flex items-center justify-between text-xs text-neutral-500 font-bold px-1 font-sans">
           <span>
             {selectedCategory === 'Semua'
               ? 'Laporan Terbaru Kampus'
@@ -240,33 +233,32 @@ export default function HomePage() {
           </span>
           <button
             onClick={() => fetchReports(searchQuery, selectedCategory)}
-            className="hidden md:flex items-center gap-1 text-[11px] text-primary hover:underline font-bold"
+            className="hidden md:flex items-center gap-1.5 text-xs text-primary hover:underline font-bold"
           >
-            <RefreshCw className="w-3 h-3" />
-            <span>Segarkan</span>
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Segarkan Data</span>
           </button>
         </div>
 
         {/* Loading State */}
         {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            <ReportCardSkeleton />
-            <ReportCardSkeleton />
-            <ReportCardSkeleton />
-            <ReportCardSkeleton />
-            <ReportCardSkeleton />
-            <ReportCardSkeleton />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <ReportCardSkeleton key={n} />
+            ))}
           </div>
         )}
 
         {/* Error State */}
-        {!loading && error && combinedReports.length === 0 && (
-          <div className="p-6 bg-danger/5 border border-danger/20 rounded-2xl text-center space-y-2">
-            <AlertCircle className="w-8 h-8 text-danger mx-auto" />
-            <p className="text-xs font-bold text-danger">{error}</p>
+        {!loading && error && (
+          <div className="p-4 bg-danger-light border border-danger/20 rounded-[20px] text-danger text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span className="font-medium">{error}</span>
+            </div>
             <button
               onClick={() => fetchReports(searchQuery, selectedCategory)}
-              className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl shadow-xs"
+              className="text-xs font-bold underline hover:no-underline shrink-0"
             >
               Coba Lagi
             </button>
@@ -274,25 +266,18 @@ export default function HomePage() {
         )}
 
         {/* Empty State */}
-        {!loading && combinedReports.length === 0 && (
+        {!loading && !error && combinedReports.length === 0 && (
           <EmptyState
-            title="Tidak Ada Laporan Ditemukan"
-            description={
-              searchQuery || selectedCategory !== 'Semua'
-                ? 'Tidak ada laporan yang sesuai dengan kriteria filter atau pencarian Anda.'
-                : 'Belum ada laporan kerusakan yang dikirimkan. Jadilah yang pertama melaporkan.'
-            }
-            actionLabel="Reset Pencarian"
-            onAction={() => {
-              setSearchQuery('');
-              setSelectedCategory('Semua');
-            }}
+            title="Belum Ada Laporan"
+            description="Tidak ada laporan fasilitas kampus yang sesuai dengan pencarian atau filter Anda."
+            actionText="Buat Laporan Baru"
+            actionHref="/lapor"
           />
         )}
 
-        {/* List of Report Cards */}
+        {/* Report Grid Cards */}
         {!loading && combinedReports.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {combinedReports.map((report) => (
               <ReportCard key={report.id} report={report} />
             ))}

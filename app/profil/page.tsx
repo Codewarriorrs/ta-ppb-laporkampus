@@ -188,8 +188,8 @@ export default function ProfilePage() {
               <span className="text-neutral-800">Neon PostgreSQL Serverless + Vercel</span>
             </div>
             <div className="flex justify-between py-2">
-              <span className="text-neutral-500">PWA & Offline Outbox</span>
-              <span className="text-neutral-800">Service Worker v2 + Background Sync</span>
+              <span className="text-neutral-500">Offline Outbox Engine</span>
+              <span className="text-neutral-800">Service Worker v3 + Background Sync</span>
             </div>
             <div className="flex justify-between py-2">
               <span className="text-neutral-500">Geospasial</span>

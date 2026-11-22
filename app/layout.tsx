@@ -7,7 +7,7 @@ import { OfflineSyncBanner } from '@/components/pwa/OfflineSyncBanner';
 
 export const metadata: Metadata = {
   title: 'LaporKampus - Pelaporan Fasilitas Kampus',
-  description: 'Aplikasi Progressive Web App untuk pelaporan fasilitas dan sarana prasarana kampus',
+  description: 'Sistem pelaporan fasilitas dan sarana prasarana kampus berbasis web modern',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: '/favicon.ico',
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1A3F8F',
+  themeColor: '#6d5ae6',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -41,10 +41,10 @@ export default function RootLayout({
       <head>
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
       </head>
-      <body className="min-h-screen bg-neutral-50 text-neutral-900 antialiased flex flex-col font-sans">
+      <body className="min-h-screen bg-background text-neutral-800 antialiased flex flex-col font-sans">
         <PwaProvider>
           <OfflineSyncBanner />
-          {/* Desktop Top Navbar (Muncul di layar desktop/tablet md ke atas) */}
+          {/* Desktop Top Navbar */}
           <DesktopNavbar />
 
           {/* Main Layout Container */}
@@ -52,7 +52,7 @@ export default function RootLayout({
             <main className="flex-1 flex flex-col">{children}</main>
           </div>
 
-          {/* Mobile Bottom Navigation (Muncul di layar HP < md) */}
+          {/* Mobile Bottom Navigation */}
           <BottomNav />
         </PwaProvider>
       </body>

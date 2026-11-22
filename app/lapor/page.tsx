@@ -6,6 +6,7 @@ import AppHeader from '@/components/layout/AppHeader';
 import { Facility, CATEGORIES, Category } from '@/types';
 import DynamicMap from '@/components/map/DynamicMap';
 import { saveOfflineReport } from '@/lib/offlineQueue';
+import { compressImageToBase64 } from '@/lib/imageCompressor';
 import { BackButton } from '@/components/ui/BackButton';
 import { 
   Camera, 
@@ -85,14 +86,14 @@ function CreateReportForm() {
     }
   }, [preselectedFacility]);
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       setStatusFeedback({
         type: 'error',
-        message: 'Ukuran foto maksimal adalah 5MB.',
+        message: 'Ukuran foto maksimal adalah 10MB.',
       });
       return;
     }
@@ -101,12 +102,18 @@ function CreateReportForm() {
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
 
-    // Convert to base64 for offline storage
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setBase64Photo(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // Kompresi foto secara cerdas agar tidak melebihi kuota 5MB localStorage saat offline
+    try {
+      const compressed = await compressImageToBase64(file, 1000, 0.75);
+      setBase64Photo(compressed);
+    } catch (err) {
+      console.warn('Gagal kompresi foto:', err);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBase64Photo(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const removePhoto = () => {

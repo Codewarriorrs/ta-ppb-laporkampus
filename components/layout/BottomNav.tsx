@@ -21,7 +21,7 @@ export default function BottomNav() {
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center bg-transparent pointer-events-none">
-      <div className="w-full max-w-[480px] bg-white border-t border-neutral-100 shadow-xl pointer-events-auto flex items-center justify-around px-2 py-2 pb-safe">
+      <div className="w-full max-w-[480px] bg-white/95 backdrop-blur-md border-t border-neutral-200/80 shadow-card-3d pointer-events-auto flex items-center justify-around px-2 py-2 pb-safe rounded-t-[28px]">
         {/* Tab 1: Beranda */}
         <Link
           href="/"
@@ -48,28 +48,16 @@ export default function BottomNav() {
           <span className="text-[11px] mt-1">Fasilitas</span>
         </Link>
 
-        {/* Tab 3: Lapor (Tombol Tengah Menonjol Bergaya Toyota Blue) */}
-        <Link
-          href="/lapor"
-          className="flex flex-col items-center justify-center -mt-7 group focus:outline-none"
-        >
-          <div
-            className={`w-13 h-13 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 active:scale-95 ${
-              isReportActive
-                ? 'bg-primary-dark text-white ring-4 ring-primary/20 rotate-45'
-                : 'bg-primary hover:bg-primary-dark text-white shadow-primary/30'
-            }`}
+        {/* Tab 3: Tombol Lapor (Floating Soft 3D Center Button) */}
+        <div className="flex-1 flex justify-center -mt-6">
+          <Link
+            href="/lapor"
+            aria-label="Buat Laporan Baru"
+            className="w-14 h-14 rounded-[22px] bg-primary text-white flex items-center justify-center shadow-btn-3d active:scale-95 transition-all hover:bg-primary-hover"
           >
-            <Plus className={`w-7 h-7 stroke-[2.5px] transition-transform ${isReportActive ? '-rotate-45' : ''}`} />
-          </div>
-          <span
-            className={`text-[11px] mt-1 font-bold ${
-              isReportActive ? 'text-primary' : 'text-neutral-700'
-            }`}
-          >
-            Lapor
-          </span>
-        </Link>
+            <Plus className="w-7 h-7 stroke-[2.8]" />
+          </Link>
+        </div>
 
         {/* Tab 4: Laporan Saya */}
         <Link

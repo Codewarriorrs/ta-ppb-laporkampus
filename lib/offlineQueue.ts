@@ -31,7 +31,7 @@ export function getOfflineReports(): OfflineReportItem[] {
 export function saveOfflineReport(
   payload: Omit<OfflineReportItem, 'tempId' | 'created_at' | 'status'>
 ): OfflineReportItem {
-  const list = getOfflineReports();
+  let list = getOfflineReports();
   const newItem: OfflineReportItem = {
     ...payload,
     tempId: 'offline-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
@@ -39,12 +39,27 @@ export function saveOfflineReport(
     status: 'pending',
   };
   list.unshift(newItem);
+
+  // Batasi maksimal 20 antrean offline untuk menghindari batas kuota storage
+  if (list.length > 20) {
+    list = list.slice(0, 20);
+  }
+
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-    // Trigger storage event for reactivity across tabs/components
     window.dispatchEvent(new Event('offline-reports-changed'));
   } catch (e) {
-    console.error('Gagal menyimpan laporan offline ke localStorage:', e);
+    console.warn('Quota exceeded, mencoba menghapus foto dari antrean terlama:', e);
+    try {
+      // Jika kuota penuh, kompres/hapus foto dari laporan terlama
+      list.forEach((item, idx) => {
+        if (idx > 2 && item.photo_url) item.photo_url = null;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      window.dispatchEvent(new Event('offline-reports-changed'));
+    } catch (err2) {
+      console.error('Gagal menyimpan laporan offline:', err2);
+    }
   }
   return newItem;
 }

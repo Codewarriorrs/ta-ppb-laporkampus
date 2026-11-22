@@ -24,13 +24,17 @@ export interface NeonUser {
   email: string;
   password_hash: string;
   role: UserRole;
+  email_verified?: boolean;
+  verification_otp?: string;
+  otp_expires_at?: string;
+  google_id?: string;
   created_at: string;
 }
 
 export async function neonFindUserByEmail(email: string): Promise<NeonUser | null> {
   if (!sql) return null;
   const rows = await sql`
-    SELECT id, name, email, password_hash, COALESCE(role, 'mahasiswa') AS role, created_at 
+    SELECT id, name, email, password_hash, COALESCE(role, 'mahasiswa') AS role, email_verified, verification_otp, otp_expires_at, google_id, created_at 
     FROM users 
     WHERE LOWER(email) = LOWER(${email}) 
     LIMIT 1
@@ -41,7 +45,7 @@ export async function neonFindUserByEmail(email: string): Promise<NeonUser | nul
 export async function neonFindUserById(id: string): Promise<Omit<NeonUser, 'password_hash'> | null> {
   if (!sql) return null;
   const rows = await sql`
-    SELECT id, name, email, COALESCE(role, 'mahasiswa') AS role, created_at 
+    SELECT id, name, email, COALESCE(role, 'mahasiswa') AS role, email_verified, created_at 
     FROM users 
     WHERE id = ${id} 
     LIMIT 1
@@ -53,15 +57,88 @@ export async function neonCreateUser(
   name: string,
   email: string,
   password_hash: string,
-  role: UserRole = 'mahasiswa'
+  role: UserRole = 'mahasiswa',
+  email_verified: boolean = false,
+  otp?: string
 ): Promise<Omit<NeonUser, 'password_hash'> | null> {
   if (!sql) return null;
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
   const rows = await sql`
-    INSERT INTO users (name, email, password_hash, role)
-    VALUES (${name}, LOWER(${email}), ${password_hash}, ${role})
-    RETURNING id, name, email, role, created_at
+    INSERT INTO users (name, email, password_hash, role, email_verified, verification_otp, otp_expires_at)
+    VALUES (${name}, LOWER(${email}), ${password_hash}, ${role}, ${email_verified}, ${otp || null}, ${otp ? expiresAt : null})
+    RETURNING id, name, email, role, email_verified, created_at
   `;
   return (rows[0] as unknown as Omit<NeonUser, 'password_hash'>) || null;
+}
+
+export async function neonSetUserOtp(email: string, otp: string): Promise<boolean> {
+  if (!sql) return false;
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+  await sql`
+    UPDATE users 
+    SET verification_otp = ${otp}, otp_expires_at = ${expiresAt}
+    WHERE LOWER(email) = LOWER(${email})
+  `;
+  return true;
+}
+
+export async function neonVerifyUserOtp(email: string, otp: string): Promise<NeonUser | null> {
+  if (!sql) return null;
+  const rows = await sql`
+    SELECT id, name, email, password_hash, COALESCE(role, 'mahasiswa') AS role, email_verified, created_at
+    FROM users 
+    WHERE LOWER(email) = LOWER(${email}) AND verification_otp = ${otp}
+    LIMIT 1
+  `;
+  if (rows.length === 0) return null;
+
+  // Mark verified and clear OTP
+  await sql`
+    UPDATE users 
+    SET email_verified = true, verification_otp = NULL, otp_expires_at = NULL
+    WHERE LOWER(email) = LOWER(${email})
+  `;
+
+  return rows[0] as unknown as NeonUser;
+}
+
+export async function neonUpsertGoogleUser({
+  name,
+  email,
+  google_id,
+}: {
+  name: string;
+  email: string;
+  google_id: string;
+}): Promise<Omit<NeonUser, 'password_hash'>> {
+  if (!sql) throw new Error('Database not connected');
+
+  const existing = await neonFindUserByEmail(email);
+  if (existing) {
+    await sql`
+      UPDATE users 
+      SET google_id = ${google_id}, email_verified = true 
+      WHERE LOWER(email) = LOWER(${email})
+    `;
+    return {
+      id: existing.id,
+      name: existing.name,
+      email: existing.email,
+      role: existing.role,
+      email_verified: true,
+      created_at: existing.created_at,
+    };
+  }
+
+  // Create new user via Google OAuth
+  const dummyHash = '$google_oauth_user_no_password$';
+  const rows = await sql`
+    INSERT INTO users (name, email, password_hash, role, email_verified, google_id)
+    VALUES (${name}, LOWER(${email}), ${dummyHash}, 'mahasiswa', true, ${google_id})
+    RETURNING id, name, email, role, email_verified, created_at
+  `;
+
+  return rows[0] as unknown as Omit<NeonUser, 'password_hash'>;
 }
 
 // ==========================================

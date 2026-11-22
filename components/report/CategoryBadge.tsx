@@ -19,9 +19,9 @@ const CATEGORY_MAP: Record<Category, { icon: React.ElementType; label: string }>
   'AC': { icon: AirVent, label: 'AC' },
   'Lampu': { icon: Lightbulb, label: 'Lampu' },
   'Kursi/Meja': { icon: Armchair, label: 'Kursi & Meja' },
-  'Toilet': { icon: Bath, label: 'Sanitasi / Toilet' },
+  'Toilet': { icon: Bath, label: 'Sanitasi' },
   'Proyektor': { icon: Projector, label: 'Proyektor' },
-  'Jaringan/WiFi': { icon: Wifi, label: 'WiFi & Jaringan' },
+  'Jaringan/WiFi': { icon: Wifi, label: 'WiFi' },
   'Lainnya': { icon: Layers, label: 'Lainnya' },
 };
 
@@ -30,14 +30,14 @@ export default function CategoryBadge({ category, size = 'sm' }: CategoryBadgePr
   const Icon = item.icon;
 
   const sizeClass = size === 'sm' 
-    ? 'text-[11px] px-2 py-0.5 gap-1.5' 
+    ? 'text-[10px] px-2 py-0.5 gap-1.5' 
     : 'text-xs px-2.5 py-1 gap-2';
 
   return (
     <span
-      className={`inline-flex items-center font-medium rounded-md bg-slate-100 text-slate-800 border border-slate-200/80 ${sizeClass}`}
+      className={`inline-flex items-center font-bold rounded-[10px] bg-surface-strong text-primary border border-primary/15 ${sizeClass}`}
     >
-      <Icon className={size === 'sm' ? 'w-3 h-3 text-slate-600' : 'w-3.5 h-3.5 text-slate-600'} />
+      <Icon className={size === 'sm' ? 'w-3 h-3 text-primary' : 'w-3.5 h-3.5 text-primary'} />
       <span>{item.label}</span>
     </span>
   );

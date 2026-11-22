@@ -27,18 +27,16 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
   const [isInstalled, setIsInstalled] = useState<boolean>(false);
 
   useEffect(() => {
-    // 1. Daftarkan Service Worker (hanya pada environment production atau jika didukung browser)
+    // 1. Daftarkan Service Worker
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      if (process.env.NODE_ENV === 'production' || window.location.hostname === 'localhost') {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((registration) => {
-            console.log('✅ Service Worker LaporKampus terdaftar:', registration.scope);
-          })
-          .catch((error) => {
-            console.error('❌ Pendaftaran Service Worker gagal:', error);
-          });
-      }
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          console.log('✅ Service Worker LaporKampus aktif:', registration.scope);
+        })
+        .catch((error) => {
+          console.warn('⚠️ Pendaftaran Service Worker:', error);
+        });
     }
 
     // 2. Cek apakah aplikasi sudah terinstall dalam mode standalone

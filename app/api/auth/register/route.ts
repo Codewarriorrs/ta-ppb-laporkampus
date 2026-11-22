@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
 import { isNeonConfigured, neonFindUserByEmail, neonCreateUser } from '@/lib/neon';
-import { hashPassword, signToken, AUTH_COOKIE_NAME } from '@/lib/auth';
+import { hashPassword } from '@/lib/auth';
+import { sendOtpVerificationEmail } from '@/lib/brevo';
 import { localStore } from '@/lib/localStore';
 
 const registerSchema = z.object({
@@ -29,65 +29,14 @@ export async function POST(request: Request) {
     }
 
     const { name, email, password } = validatedData.data;
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // 1. NEON POSTGRES
     if (isNeonConfigured) {
-      const existingUser = await neonFindUserByEmail(email);
-      if (existingUser) {
-        return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            message: 'Email sudah terdaftar di database Neon. Silakan login atau gunakan email lain.',
-          },
-          { status: 409 }
-        );
-      }
-
-      const password_hash = await hashPassword(password);
-      const newUser = await neonCreateUser(name, email, password_hash);
-
-      if (!newUser) {
-        return NextResponse.json(
-          { success: false, data: null, message: 'Gagal membuat akun di database Neon.' },
-          { status: 500 }
-        );
-      }
-
-      const token = await signToken({
-        userId: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-      });
-
-      const response = NextResponse.json(
-        {
-          success: true,
-          data: { user: { id: newUser.id, name: newUser.name, email: newUser.email } },
-          message: 'Registrasi berhasil! Selamat datang di LaporKampus.',
-        },
-        { status: 201 }
-      );
-
-      response.cookies.set(AUTH_COOKIE_NAME, token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-
-      return response;
-    }
-
-    // 2. SUPABASE POSTGRES
-    if (isSupabaseConfigured) {
-      const { data: existingUser } = await supabaseServer
-        .from('users')
-        .select('id, email')
-        .eq('email', email.toLowerCase())
-        .single();
-
+      const existingUser = await neonFindUserByEmail(cleanEmail);
       if (existingUser) {
         return NextResponse.json(
           {
@@ -100,105 +49,68 @@ export async function POST(request: Request) {
       }
 
       const password_hash = await hashPassword(password);
-      const { data: newUser, error: insertError } = await supabaseServer
-        .from('users')
-        .insert({
-          name,
-          email: email.toLowerCase(),
-          password_hash,
-        })
-        .select('id, name, email, created_at')
-        .single();
+      const newUser = await neonCreateUser(name, cleanEmail, password_hash, 'mahasiswa', false, otp);
 
-      if (insertError || !newUser) {
+      if (!newUser) {
         return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            message: 'Gagal membuat akun di database Supabase: ' + (insertError?.message || 'Unknown error'),
-          },
+          { success: false, data: null, message: 'Gagal membuat akun di database Neon.' },
           { status: 500 }
         );
       }
 
-      const token = await signToken({
-        userId: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
+      // Kirim email verifikasi OTP via Brevo API
+      await sendOtpVerificationEmail({
+        toEmail: cleanEmail,
+        toName: name,
+        otp,
       });
 
-      const response = NextResponse.json(
+      return NextResponse.json(
         {
           success: true,
-          data: { user: { id: newUser.id, name: newUser.name, email: newUser.email } },
-          message: 'Registrasi berhasil! Selamat datang di LaporKampus.',
+          requiresVerification: true,
+          email: cleanEmail,
+          // devOtp dikirimkan agar jika Brevo belum diisi api key, pengembang tidak terhambat
+          devOtp: (!process.env.BREVO_API_KEY || process.env.BREVO_API_KEY === 'your_brevo_api_key_here') ? otp : undefined,
+          message: 'Pendaftaran berhasil! Kode verifikasi OTP telah dikirimkan ke email kampus Anda.',
         },
         { status: 201 }
       );
-
-      response.cookies.set(AUTH_COOKIE_NAME, token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      });
-
-      return response;
     }
 
-    // 3. FALLBACK LOCAL STORE
-    const existing = localStore.findUserByEmail(email);
+    // 2. FALLBACK LOKAL
+    const existing = localStore.findUserByEmail(cleanEmail);
     if (existing) {
       return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Email sudah terdaftar. Silakan login atau gunakan email lain.',
-        },
+        { success: false, message: 'Email sudah terdaftar.' },
         { status: 409 }
       );
     }
 
-    const password_hash = await hashPassword(password);
-    const newUser = localStore.addUser({
-      id: `u-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    const user = localStore.addUser({
+      id: 'u-' + Date.now(),
       name,
-      email: email.toLowerCase(),
-      password_hash,
+      email: cleanEmail,
+      password_hash: password,
+      role: 'mahasiswa',
       created_at: new Date().toISOString(),
     });
-
-    const token = await signToken({
-      userId: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-    });
-
-    const response = NextResponse.json(
+    return NextResponse.json(
       {
         success: true,
-        data: { user: { id: newUser.id, name: newUser.name, email: newUser.email } },
-        message: 'Registrasi berhasil! Selamat datang di LaporKampus.',
+        requiresVerification: true,
+        email: cleanEmail,
+        devOtp: otp,
+        message: 'Registrasi berhasil (mode lokal).',
       },
       { status: 201 }
     );
-
-    response.cookies.set(AUTH_COOKIE_NAME, token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    return response;
   } catch (error: any) {
     return NextResponse.json(
       {
         success: false,
         data: null,
-        message: 'Terjadi kesalahan pada server: ' + (error?.message || 'Internal Server Error'),
+        message: 'Terjadi kesalahan server: ' + (error?.message || 'Internal Server Error'),
       },
       { status: 500 }
     );

@@ -4,11 +4,11 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'LaporKampus - Pelaporan Fasilitas Kampus',
     short_name: 'LaporKampus',
-    description: 'Aplikasi Progressive Web App untuk pelaporan fasilitas dan sarana prasarana kampus',
+    description: 'Sistem pelaporan fasilitas dan sarana prasarana kampus berbasis web modern',
     start_url: '/',
     display: 'standalone',
-    background_color: '#F7F8FC',
-    theme_color: '#1A3F8F',
+    background_color: '#eef1fb',
+    theme_color: '#6d5ae6',
     orientation: 'portrait',
     icons: [
       {

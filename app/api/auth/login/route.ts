@@ -72,6 +72,19 @@ export async function POST(request: Request) {
       );
     }
 
+    // Cek apakah email sudah diverifikasi (jika ada flag email_verified)
+    if ((user as any).email_verified === false) {
+      return NextResponse.json(
+        {
+          success: false,
+          requiresVerification: true,
+          email: user.email,
+          message: 'Email Anda belum diverifikasi. Silakan masukkan kode OTP yang telah dikirimkan ke email Anda.',
+        },
+        { status: 403 }
+      );
+    }
+
     const token = await signToken({
       userId: user.id,
       name: user.name,

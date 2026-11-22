@@ -114,10 +114,10 @@ export default function FacilitiesPage() {
               <Link
                 key={facility.id}
                 href={`/fasilitas/${facility.id}`}
-                className="block bg-white rounded-2xl border border-neutral-100 shadow-xs hover:border-neutral-200 hover:shadow-md transition-all active:scale-[0.99] overflow-hidden group"
+                className="block bg-surface rounded-[24px] border border-white/80 ring-1 ring-neutral-200/60 shadow-card-3d hover:shadow-soft-3d hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.99] overflow-hidden group"
               >
                 {/* Gambar Fasilitas */}
-                <div className="w-full h-36 bg-neutral-100 relative overflow-hidden">
+                <div className="w-full h-40 bg-neutral-100 relative overflow-hidden">
                   {facility.image_url ? (
                     <img
                       src={facility.image_url}
@@ -131,29 +131,29 @@ export default function FacilitiesPage() {
                   )}
 
                   {/* Badge Jumlah Laporan */}
-                  <div className="absolute top-2.5 right-2.5 bg-neutral-900/80 backdrop-blur-xs text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs">
+                  <div className="absolute top-3 right-3 bg-neutral-900/80 backdrop-blur-md text-white text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md">
                     <FileText className="w-3 h-3 text-accent" />
                     <span>{facility.report_count || 0} Laporan</span>
                   </div>
                 </div>
 
                 {/* Konten Card */}
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center text-[11px] text-neutral-400 font-bold gap-1 uppercase tracking-wider">
-                    <MapPin className="w-3 h-3 text-primary shrink-0" />
+                <div className="p-5 space-y-2">
+                  <div className="flex items-center text-[11px] text-neutral-400 font-bold gap-1 uppercase tracking-wider font-sans">
+                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                     <span className="truncate">{facility.building}</span>
                   </div>
 
-                  <h3 className="font-extrabold text-neutral-900 text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                  <h3 className="font-extrabold text-neutral-900 text-sm line-clamp-1 group-hover:text-primary transition-colors font-display">
                     {facility.name}
                   </h3>
 
-                  <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed font-sans">
                     {facility.description || 'Fasilitas aktif lingkungan kampus.'}
                   </p>
 
-                  <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs text-primary font-bold">
-                    <span>Lihat Laporan Fasilitas</span>
+                  <div className="pt-3 border-t border-neutral-100 flex items-center justify-between text-xs text-primary font-bold">
+                    <span>Lihat Riwayat Laporan</span>
                     <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
