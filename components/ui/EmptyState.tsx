@@ -7,6 +7,7 @@ interface EmptyStateProps {
   title: string;
   description: string;
   actionText?: string;
+  actionLabel?: string;
   actionHref?: string;
   onAction?: () => void;
 }
@@ -16,30 +17,33 @@ export default function EmptyState({
   title,
   description,
   actionText,
+  actionLabel,
   actionHref,
   onAction,
 }: EmptyStateProps) {
+  const label = actionLabel || actionText;
+
   return (
-    <div className="flex flex-col items-center justify-center text-center p-8 bg-white rounded-2xl border border-gray-100 shadow-sm my-4">
-      <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-3">
+    <div className="flex flex-col items-center justify-center text-center p-8 bg-white rounded-2xl border border-neutral-100 shadow-xs my-4">
+      <div className="w-14 h-14 bg-primary-50 text-primary rounded-2xl flex items-center justify-center mb-3">
         <Icon className="w-7 h-7 stroke-[1.8]" />
       </div>
-      <h3 className="text-base font-semibold text-gray-900 mb-1">{title}</h3>
-      <p className="text-xs text-gray-500 max-w-xs mb-4 leading-relaxed">{description}</p>
-      {actionText && (
+      <h3 className="text-base font-bold text-neutral-900 mb-1">{title}</h3>
+      <p className="text-xs text-neutral-500 max-w-xs mb-4 leading-relaxed">{description}</p>
+      {label && (
         actionHref ? (
           <Link
             href={actionHref}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm active:scale-95 transition-all"
+            className="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-xl shadow-sm shadow-primary/20 active:scale-95 transition-all"
           >
-            {actionText}
+            {label}
           </Link>
         ) : onAction ? (
           <button
             onClick={onAction}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm active:scale-95 transition-all"
+            className="px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-semibold rounded-xl shadow-sm shadow-primary/20 active:scale-95 transition-all"
           >
-            {actionText}
+            {label}
           </button>
         ) : null
       )}

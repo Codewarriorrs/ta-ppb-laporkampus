@@ -23,6 +23,7 @@ interface CampusMapProps {
   onLocationSelect?: (lat: number, lng: number) => void;
   height?: string;
   markerTitle?: string;
+  popupText?: string;
 }
 
 export default function CampusMap({
@@ -32,8 +33,10 @@ export default function CampusMap({
   interactive = false,
   onLocationSelect,
   height = '200px',
-  markerTitle = 'Lokasi Fasilitas',
+  markerTitle,
+  popupText,
 }: CampusMapProps) {
+  const displayTitle = markerTitle || popupText || 'Lokasi Fasilitas';
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -69,8 +72,8 @@ export default function CampusMap({
       draggable: interactive,
     }).addTo(map);
 
-    if (markerTitle) {
-      marker.bindPopup(markerTitle);
+    if (displayTitle) {
+      marker.bindPopup(displayTitle);
     }
 
     // Event listener jika interaktif

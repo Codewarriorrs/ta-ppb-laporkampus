@@ -5,10 +5,10 @@
 
 -- 1. Seed User Contoh
 -- Password: password123 (Bcrypt hash)
-INSERT INTO users (id, name, email, password_hash) VALUES
-('a0000000-0000-0000-0000-000000000001', 'Ahmad Zaidan', 'zaidan@kampus.ac.id', '$2a$10$5M8pM4bV3sHj6gXmDqK8ce7LqK1G0fD7.aG0Zk1p6xZ9e2g3jK5h2'),
-('a0000000-0000-0000-0000-000000000002', 'Budi Santoso', 'budi@kampus.ac.id', '$2a$10$5M8pM4bV3sHj6gXmDqK8ce7LqK1G0fD7.aG0Zk1p6xZ9e2g3jK5h2')
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO users (id, name, email, password_hash, role) VALUES
+('a0000000-0000-0000-0000-000000000001', 'Ahmad Zaidan', 'zaidan@kampus.ac.id', '$2a$10$5M8pM4bV3sHj6gXmDqK8ce7LqK1G0fD7.aG0Zk1p6xZ9e2g3jK5h2', 'mahasiswa'),
+('a0000000-0000-0000-0000-000000000002', 'Budi Santoso (Birokrasi)', 'budi@kampus.ac.id', '$2a$10$5M8pM4bV3sHj6gXmDqK8ce7LqK1G0fD7.aG0Zk1p6xZ9e2g3jK5h2', 'birokrasi')
+ON CONFLICT (id) DO UPDATE SET role = EXCLUDED.role, name = EXCLUDED.name;
 
 -- 2. Seed 10 Fasilitas Kampus
 INSERT INTO facilities (id, name, building, description, image_url) VALUES
@@ -85,7 +85,7 @@ INSERT INTO facilities (id, name, building, description, image_url) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- 3. Seed 5 Contoh Laporan Kerusakan
-INSERT INTO reports (id, user_id, facility_id, category, title, description, photo_url, latitude, longitude, created_at) VALUES
+INSERT INTO reports (id, user_id, facility_id, category, title, description, photo_url, latitude, longitude, status, feedback, feedback_by, feedback_at, created_at) VALUES
 (
     'c0000000-0000-0000-0000-000000000001',
     'a0000000-0000-0000-0000-000000000001',
@@ -96,11 +96,15 @@ INSERT INTO reports (id, user_id, facility_id, category, title, description, pho
     'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80',
     -7.050410,
     110.435120,
+    'diproses',
+    'Laporan telah diterima oleh Tim Sarpras Kampus. Teknisi AC dijadwalkan melakukan pengecekan kompresor hari ini pukul 14:00 WIB.',
+    'a0000000-0000-0000-0000-000000000002',
+    NOW() - INTERVAL '1 hour',
     NOW() - INTERVAL '2 hours'
 ),
 (
     'c0000000-0000-0000-0000-000000000002',
-    'a0000000-0000-0000-0000-000000000002',
+    'a0000000-0000-0000-0000-000000000003',
     'f0000000-0000-0000-0000-000000000003',
     'Proyektor',
     'Proyektor LCD Ruang 204 Berkedip dan Tampilan Kuning',
@@ -108,6 +112,10 @@ INSERT INTO reports (id, user_id, facility_id, category, title, description, pho
     'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=800&q=80',
     -7.050890,
     110.435550,
+    'selesai',
+    'Kabel VGA/HDMI dan lampu proyektor telah diganti dengan unit baru oleh staf pengelola gedung.',
+    'a0000000-0000-0000-0000-000000000002',
+    NOW() - INTERVAL '2 hours',
     NOW() - INTERVAL '5 hours'
 ),
 (
@@ -120,11 +128,15 @@ INSERT INTO reports (id, user_id, facility_id, category, title, description, pho
     'https://images.unsplash.com/photo-1585670149967-b4f4da88cc9f?auto=format&fit=crop&w=800&q=80',
     -7.051120,
     110.435780,
+    'menunggu',
+    NULL,
+    NULL,
+    NULL,
     NOW() - INTERVAL '1 day'
 ),
 (
     'c0000000-0000-0000-0000-000000000004',
-    'a0000000-0000-0000-0000-000000000002',
+    'a0000000-0000-0000-0000-000000000003',
     'f0000000-0000-0000-0000-000000000002',
     'Jaringan/WiFi',
     'Koneksi Akses Poin WiFi di Meja Belajar Putus-Putus',
@@ -132,6 +144,10 @@ INSERT INTO reports (id, user_id, facility_id, category, title, description, pho
     'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=80',
     -7.050630,
     110.434910,
+    'menunggu',
+    NULL,
+    NULL,
+    NULL,
     NOW() - INTERVAL '2 days'
 ),
 (
@@ -144,6 +160,14 @@ INSERT INTO reports (id, user_id, facility_id, category, title, description, pho
     'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=800&q=80',
     -7.050350,
     110.435340,
+    'menunggu',
+    NULL,
+    NULL,
+    NULL,
     NOW() - INTERVAL '3 days'
 )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET 
+  status = EXCLUDED.status,
+  feedback = EXCLUDED.feedback,
+  feedback_by = EXCLUDED.feedback_by,
+  feedback_at = EXCLUDED.feedback_at;

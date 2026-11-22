@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Report } from '@/types';
+import { Report, ReportStatus } from '@/types';
 import AppHeader from '@/components/layout/AppHeader';
 import CategoryBadge from '@/components/report/CategoryBadge';
+import StatusBadge from '@/components/report/StatusBadge';
 import DynamicMap from '@/components/map/DynamicMap';
 import { DetailSkeleton } from '@/components/ui/Skeleton';
+import { BackButton } from '@/components/ui/BackButton';
 import { 
   Building2, 
   MapPin, 
@@ -15,9 +17,12 @@ import {
   User, 
   Edit3, 
   Trash2, 
-  AlertCircle,
+  AlertCircle, 
   Loader2,
-  ArrowLeft
+  ShieldCheck,
+  MessageSquare,
+  Send,
+  Clock
 } from 'lucide-react';
 
 export default function ReportDetailPage() {
@@ -28,9 +33,15 @@ export default function ReportDetailPage() {
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Birokrasi quick feedback form
+  const [feedbackInput, setFeedbackInput] = useState('');
+  const [feedbackStatusInput, setFeedbackStatusInput] = useState<ReportStatus>('diproses');
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     // 1. Ambil info user yang sedang login
@@ -38,7 +49,7 @@ export default function ReportDetailPage() {
       .then((res) => res.json())
       .then((res) => {
         if (res.success && res.data) {
-          setCurrentUserId(res.data.id);
+          setCurrentUser(res.data);
         }
       })
       .catch(() => {});
@@ -50,6 +61,8 @@ export default function ReportDetailPage() {
         .then((res) => {
           if (res.success && res.data) {
             setReport(res.data);
+            setFeedbackInput(res.data.feedback || '');
+            setFeedbackStatusInput(res.data.status || 'diproses');
           } else {
             setError(res.message || 'Laporan tidak ditemukan');
           }
@@ -83,26 +96,58 @@ export default function ReportDetailPage() {
     }
   };
 
-  const isOwner = currentUserId && report && report.user_id === currentUserId;
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedbackInput.trim()) return;
+
+    setSubmittingFeedback(true);
+    try {
+      const res = await fetch(`/api/reports/${id}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          feedback: feedbackInput.trim(),
+          status: feedbackStatusInput,
+        }),
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setReport(json.data);
+        setFeedbackSuccess('Tanggapan resmi birokrasi berhasil disimpan!');
+        setTimeout(() => setFeedbackSuccess(null), 4000);
+      } else {
+        alert(json.message || 'Gagal menyimpan tanggapan');
+      }
+    } catch {
+      alert('Terjadi kesalahan jaringan.');
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
+  const isOwner = currentUser?.id && report && report.user_id === currentUser.id;
+  const isBirokrasi = currentUser?.role === 'birokrasi';
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col bg-neutral-50 pb-12">
       <AppHeader
         title="Detail Laporan Fasilitas"
         showBack={true}
+        backHref="/"
         rightAction={
           isOwner ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Link
                 href={`/laporan/${id}/edit`}
-                className="px-2.5 py-1 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors border border-blue-200"
+                className="px-3 py-1.5 text-primary bg-primary/10 hover:bg-primary/20 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors border border-primary/20"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Edit</span>
               </Link>
               <button
                 onClick={() => setDeleteModalOpen(true)}
-                className="px-2.5 py-1 text-red-700 bg-red-50 hover:bg-red-100 rounded-md text-xs font-semibold flex items-center gap-1 transition-colors border border-red-200"
+                className="px-3 py-1.5 text-danger bg-danger/10 hover:bg-danger/20 rounded-xl text-xs font-bold flex items-center gap-1 transition-colors border border-danger/20"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Hapus</span>
@@ -116,16 +161,11 @@ export default function ReportDetailPage() {
         {loading && <DetailSkeleton />}
 
         {!loading && error && (
-          <div className="p-8 bg-white rounded-xl border border-slate-200 shadow-xs text-center max-w-md mx-auto my-6">
-            <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-2" />
-            <h2 className="text-base font-bold text-slate-900 mb-1">Laporan Tidak Ditemukan</h2>
-            <p className="text-xs text-slate-500 mb-4">{error}</p>
-            <Link
-              href="/"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold"
-            >
-              Kembali ke Beranda
-            </Link>
+          <div className="p-8 bg-white rounded-3xl border border-neutral-100 shadow-xs text-center max-w-md mx-auto my-6">
+            <AlertCircle className="w-10 h-10 text-danger mx-auto mb-2" />
+            <h2 className="text-base font-bold text-neutral-900 mb-1">Laporan Tidak Ditemukan</h2>
+            <p className="text-xs text-neutral-500 mb-4">{error}</p>
+            <BackButton href="/" label="Kembali ke Beranda" variant="primary" />
           </div>
         )}
 
@@ -134,7 +174,7 @@ export default function ReportDetailPage() {
             {/* Kolom Kiri: Foto & Deskripsi (7 Kolom di Desktop) */}
             <div className="lg:col-span-7 space-y-4">
               {/* Foto Besar */}
-              <div className="w-full h-64 sm:h-80 md:h-96 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 shadow-xs relative">
+              <div className="w-full h-64 sm:h-80 md:h-96 bg-neutral-100 rounded-3xl overflow-hidden border border-neutral-200 shadow-xs relative">
                 {report.photo_url ? (
                   <img
                     src={report.photo_url}
@@ -142,31 +182,122 @@ export default function ReportDetailPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+                  <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 bg-neutral-50">
                     <Building2 className="w-12 h-12 stroke-[1.2] mb-1" />
-                    <span className="text-xs">Foto bukti fisik tidak dilampirkan</span>
+                    <span className="text-xs font-semibold">Foto bukti fisik tidak dilampirkan</span>
                   </div>
                 )}
               </div>
 
               {/* Deskripsi Kerusakan */}
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-2">
-                <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-neutral-100 shadow-xs space-y-2">
+                <h3 className="text-xs font-extrabold text-neutral-900 uppercase tracking-wider">
                   Deskripsi Kerusakan
                 </h3>
-                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                <p className="text-sm text-neutral-700 leading-relaxed whitespace-pre-line font-medium">
                   {report.description}
                 </p>
+              </div>
+
+              {/* ── KOTAK TANGGAPAN RESMI BIROKRASI KAMPUS ── */}
+              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-neutral-100 shadow-xs space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-neutral-100">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-extrabold text-neutral-900 uppercase tracking-wider">
+                        Tindak Lanjut & Tanggapan Birokrasi
+                      </h3>
+                      <p className="text-[10px] text-neutral-400">Respon resmi dari pengelola fasilitas kampus</p>
+                    </div>
+                  </div>
+                  <StatusBadge status={report.status} />
+                </div>
+
+                {report.feedback ? (
+                  <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-2">
+                    <p className="text-xs text-neutral-800 leading-relaxed font-medium">
+                      &ldquo;{report.feedback}&rdquo;
+                    </p>
+                    <div className="flex items-center justify-between text-[10px] text-neutral-400 pt-2 border-t border-neutral-200/60 font-semibold">
+                      <span>Ditanggapi oleh: <strong className="text-primary">{report.feedback_by_name || 'Birokrasi Sarpras'}</strong></span>
+                      {report.feedback_at && (
+                        <span>
+                          {new Date(report.feedback_at).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-2xl flex items-start gap-3">
+                    <Clock className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                    <p className="text-xs text-amber-900 leading-relaxed">
+                      Belum ada catatan tanggapan resmi dari pihak kampus. Laporan ini sedang berada di antrean pengecekan staf sarana dan prasarana.
+                    </p>
+                  </div>
+                )}
+
+                {/* Form Khusus untuk Birokrasi Kampus */}
+                {isBirokrasi && (
+                  <form onSubmit={handleFeedbackSubmit} className="mt-4 pt-3 border-t border-neutral-100 space-y-3">
+                    <p className="text-xs font-bold text-neutral-900">Kirim / Perbarui Tanggapan Birokrasi:</p>
+                    <div className="flex gap-2">
+                      {(['diproses', 'selesai', 'ditolak'] as ReportStatus[]).map((st) => (
+                        <button
+                          key={st}
+                          type="button"
+                          onClick={() => setFeedbackStatusInput(st)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize border transition-all ${
+                            feedbackStatusInput === st
+                              ? 'bg-primary text-white border-primary shadow-xs'
+                              : 'bg-neutral-50 text-neutral-700 border-neutral-200'
+                          }`}
+                        >
+                          {st}
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      rows={3}
+                      required
+                      value={feedbackInput}
+                      onChange={(e) => setFeedbackInput(e.target.value)}
+                      placeholder="Tuliskan respon resmi dan instruksi perbaikan fasilitas..."
+                      className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-medium text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    />
+                    {feedbackSuccess && (
+                      <p className="text-xs font-bold text-success">{feedbackSuccess}</p>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={submittingFeedback}
+                      className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold shadow-md shadow-primary/20 flex items-center gap-1.5 transition-all"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{submittingFeedback ? 'Menyimpan...' : 'Perbarui Tanggapan'}</span>
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
 
             {/* Kolom Kanan: Metadata & Peta Leaflet (5 Kolom di Desktop) */}
             <div className="lg:col-span-5 space-y-4">
               {/* Informasi Utama */}
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <CategoryBadge category={report.category} size="md" />
-                  <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
+              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-neutral-100 shadow-xs space-y-3.5">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <CategoryBadge category={report.category} size="md" />
+                    <StatusBadge status={report.status} />
+                  </div>
+                  <span className="text-xs text-neutral-400 font-mono flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
                     {new Date(report.created_at).toLocaleDateString('id-ID', {
                       day: 'numeric',
@@ -178,16 +309,16 @@ export default function ReportDetailPage() {
                   </span>
                 </div>
 
-                <h1 className="text-lg font-bold text-slate-900 leading-snug">
+                <h1 className="text-lg font-extrabold text-neutral-900 leading-snug">
                   {report.title}
                 </h1>
 
-                <div className="pt-3 border-t border-slate-100 space-y-2 text-xs text-slate-600">
+                <div className="pt-3 border-t border-neutral-100 space-y-2 text-xs text-neutral-600">
                   <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                    <Building2 className="w-4 h-4 text-primary shrink-0" />
                     <span>
                       Fasilitas:{' '}
-                      <strong className="text-slate-900 font-semibold">
+                      <strong className="text-neutral-900 font-bold">
                         {report.facility_name}
                       </strong>
                       {report.facility_building ? ` (${report.facility_building})` : ''}
@@ -195,10 +326,10 @@ export default function ReportDetailPage() {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-slate-600 flex-shrink-0" />
+                    <User className="w-4 h-4 text-neutral-500 shrink-0" />
                     <span>
                       Pelapor:{' '}
-                      <strong className="text-slate-900 font-semibold">
+                      <strong className="text-neutral-900 font-bold">
                         {report.user_name || 'Mahasiswa'}
                       </strong>
                     </span>
@@ -207,61 +338,29 @@ export default function ReportDetailPage() {
               </div>
 
               {/* Peta Lokasi Leaflet */}
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
+              <div className="bg-white p-5 sm:p-6 rounded-3xl border border-neutral-100 shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-blue-600" />
-                    <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-primary" />
+                    <h3 className="text-xs font-extrabold text-neutral-900 uppercase tracking-wider">
                       Titik Lokasi di Kampus
                     </h3>
                   </div>
                   {report.latitude && report.longitude && (
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span className="text-[10px] text-neutral-400 font-mono font-bold">
                       {Number(report.latitude).toFixed(5)}, {Number(report.longitude).toFixed(5)}
                     </span>
                   )}
                 </div>
 
-                {report.latitude && report.longitude ? (
-                  <DynamicMap
-                    latitude={Number(report.latitude)}
-                    longitude={Number(report.longitude)}
-                    markerTitle={`${report.facility_name}: ${report.title}`}
-                    height="200px"
-                    interactive={false}
-                  />
-                ) : (
-                  <div className="p-4 bg-slate-50 rounded-lg text-center text-xs text-slate-400">
-                    Koordinat peta tidak disematkan pada laporan ini.
-                  </div>
-                )}
+                <DynamicMap
+                  latitude={Number(report.latitude) || -7.05041}
+                  longitude={Number(report.longitude) || 110.43512}
+                  interactive={false}
+                  popupText={`${report.title} (${report.facility_name})`}
+                  height="220px"
+                />
               </div>
-
-              {/* Aksi Khusus Pemilik */}
-              {isOwner && (
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs space-y-2">
-                  <p className="text-xs text-slate-500 font-medium">
-                    Anda adalah pemilik laporan ini:
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/laporan/${id}/edit`}
-                      className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors border border-slate-200"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>Edit Laporan</span>
-                    </Link>
-
-                    <button
-                      onClick={() => setDeleteModalOpen(true)}
-                      className="flex-1 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-semibold text-xs rounded-lg flex items-center justify-center gap-1.5 transition-colors border border-red-200"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Hapus Laporan</span>
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -269,24 +368,24 @@ export default function ReportDetailPage() {
 
       {/* Modal Konfirmasi Hapus */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-sm w-full p-5 space-y-3 shadow-xl border border-slate-200">
-            <h3 className="text-sm font-bold text-slate-900">Konfirmasi Hapus Laporan</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Apakah Anda yakin ingin menghapus laporan ini? Tindakan ini tidak dapat dibatalkan.
+        <div className="fixed inset-0 z-50 bg-neutral-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-3 shadow-2xl border border-neutral-100 animate-in fade-in zoom-in-95">
+            <h3 className="text-sm font-extrabold text-neutral-900">Hapus Laporan Ini?</h3>
+            <p className="text-xs text-neutral-500 leading-relaxed">
+              Laporan ini akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.
             </p>
             <div className="flex items-center gap-2 pt-2">
               <button
                 onClick={() => setDeleteModalOpen(false)}
                 disabled={deleting}
-                className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg"
+                className="flex-1 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-bold rounded-xl"
               >
                 Batal
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1"
+                className="flex-1 py-2.5 bg-danger hover:bg-danger-dark text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1 shadow-md shadow-danger/20"
               >
                 {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Hapus Laporan'}
               </button>

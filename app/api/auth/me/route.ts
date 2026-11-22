@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       return NextResponse.json(
         {
           success: true,
-          data: { id: user.id, name: user.name, email: user.email, created_at: user.created_at },
+          data: { id: user.id, name: user.name, email: user.email, role: user.role || 'mahasiswa', created_at: user.created_at },
           message: 'Data sesi pengguna berhasil dimuat (Neon Postgres).',
         },
         { status: 200 }
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     if (isSupabaseConfigured) {
       const { data: user, error } = await supabaseServer
         .from('users')
-        .select('id, name, email, created_at')
+        .select('id, name, email, role, created_at')
         .eq('id', authUser.userId)
         .single();
 
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
       return NextResponse.json(
         {
           success: true,
-          data: user,
+          data: { ...user, role: user.role || 'mahasiswa' },
           message: 'Data sesi pengguna berhasil dimuat (Supabase).',
         },
         { status: 200 }
@@ -83,6 +83,7 @@ export async function GET(request: Request) {
           id: user.id,
           name: user.name,
           email: user.email,
+          role: user.role || 'mahasiswa',
           created_at: user.created_at,
         },
         message: 'Data sesi pengguna berhasil dimuat (mode lokal).',

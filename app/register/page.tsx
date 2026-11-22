@@ -53,22 +53,22 @@ function RegisterForm() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-center px-6 py-10 bg-gradient-to-b from-blue-50/50 via-white to-gray-50">
+    <div className="flex-1 flex flex-col justify-center px-5 sm:px-6 py-10 bg-neutral-50/50">
       {/* Brand Header */}
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/20 mb-3">
-          <ShieldAlert className="w-9 h-9 text-white stroke-[2.2]" />
+      <div className="text-center mb-6">
+        <div className="w-14 h-14 bg-primary rounded-2xl mx-auto flex items-center justify-center shadow-md shadow-primary/20 mb-3">
+          <ShieldAlert className="w-8 h-8 text-white stroke-[2.2]" />
         </div>
-        <h1 className="text-2xl font-black text-gray-900 tracking-tight">LaporKampus</h1>
-        <p className="text-xs text-gray-500 mt-1 max-w-xs mx-auto">
+        <h1 className="text-2xl font-black text-neutral-900 tracking-tight">LaporKampus</h1>
+        <p className="text-xs text-neutral-500 mt-1 max-w-xs mx-auto">
           Daftarkan akun Anda untuk mulai menyampaikan laporan fasilitas
         </p>
       </div>
 
       {/* Card Form */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-1">Daftar Akun Baru</h2>
-        <p className="text-xs text-gray-500 mb-5">
+      <div className="bg-white rounded-2xl border border-neutral-200/80 shadow-xs p-6 max-w-md mx-auto w-full">
+        <h2 className="text-lg font-bold text-neutral-900 mb-1">Daftar Akun Baru</h2>
+        <p className="text-xs text-neutral-500 mb-5">
           Lengkapi data diri Anda di bawah ini
         </p>
 
@@ -82,11 +82,11 @@ function RegisterForm() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nama Lengkap */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
               Nama Lengkap
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-400">
                 <User className="w-4 h-4" />
               </div>
               <input
@@ -95,18 +95,18 @@ function RegisterForm() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Contoh: Muhammad Zaidan"
-                className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full pl-9 pr-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
           </div>
 
           {/* Email */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
               Email Kampus
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-400">
                 <Mail className="w-4 h-4" />
               </div>
               <input
@@ -115,18 +115,18 @@ function RegisterForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@kampus.ac.id"
-                className="w-full pl-9 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full pl-9 pr-3 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-neutral-700 mb-1">
               Kata Sandi (Minimal 8 karakter)
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-neutral-400">
                 <Lock className="w-4 h-4" />
               </div>
               <input
@@ -135,12 +135,12 @@ function RegisterForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full pl-9 pr-10 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs sm:text-sm text-neutral-900 placeholder-neutral-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 hover:text-neutral-600"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -151,16 +151,16 @@ function RegisterForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold text-sm rounded-xl shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full mt-2 py-3 bg-primary hover:bg-primary-hover active:scale-[0.99] text-white font-semibold text-sm rounded-xl shadow-sm shadow-primary/20 flex items-center justify-center gap-2 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Mendaftarkan...</span>
+                <span>Mendaftarkan Akun...</span>
               </>
             ) : (
               <>
-                <span>Buat Akun</span>
+                <span>Daftar Akun Baru</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -169,11 +169,11 @@ function RegisterForm() {
       </div>
 
       {/* Switch ke Login */}
-      <div className="mt-6 text-center text-xs text-gray-600">
+      <div className="mt-6 text-center text-xs text-neutral-600">
         Sudah memiliki akun?{' '}
         <Link
           href={`/login${redirect !== '/' ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}
-          className="font-bold text-blue-600 hover:underline"
+          className="font-bold text-primary hover:underline"
         >
           Masuk di Sini
         </Link>

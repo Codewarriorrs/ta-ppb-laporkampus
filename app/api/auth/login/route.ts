@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     const { email, password } = validatedData.data;
 
-    let user: { id: string; name: string; email: string; password_hash: string } | null = null;
+    let user: { id: string; name: string; email: string; password_hash: string; role?: any } | null = null;
 
     // 1. NEON POSTGRES
     if (isNeonConfigured) {
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       // 2. SUPABASE POSTGRES
       const { data: dbUser } = await supabaseServer
         .from('users')
-        .select('id, name, email, password_hash')
+        .select('id, name, email, password_hash, role')
         .eq('email', email.toLowerCase())
         .single();
       if (dbUser) user = dbUser;
@@ -76,6 +76,7 @@ export async function POST(request: Request) {
       userId: user.id,
       name: user.name,
       email: user.email,
+      role: user.role || 'mahasiswa',
     });
 
     const response = NextResponse.json(
@@ -86,6 +87,7 @@ export async function POST(request: Request) {
             id: user.id,
             name: user.name,
             email: user.email,
+            role: user.role || 'mahasiswa',
           },
         },
         message: 'Login berhasil! Selamat datang kembali.',

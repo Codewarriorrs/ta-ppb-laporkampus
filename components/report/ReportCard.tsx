@@ -2,7 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import { Report } from '@/types';
 import CategoryBadge from './CategoryBadge';
-import { MapPin, Calendar, Image as ImageIcon } from 'lucide-react';
+import StatusBadge from './StatusBadge';
+import { MapPin, Calendar, Image as ImageIcon, MessageSquare } from 'lucide-react';
 
 interface ReportCardProps {
   report: Report;
@@ -33,11 +34,11 @@ export default function ReportCard({ report }: ReportCardProps) {
   return (
     <Link
       href={`/laporan/${report.id}`}
-      className="block bg-white rounded-xl border border-slate-200/80 shadow-xs hover:border-blue-400 hover:shadow-md transition-all active:scale-[0.99] overflow-hidden group"
+      className="block bg-white rounded-2xl border border-neutral-100 shadow-xs hover:border-neutral-200 hover:shadow-md transition-all duration-200 active:scale-[0.99] overflow-hidden group"
     >
-      <div className="flex p-3.5 gap-3.5">
+      <div className="flex p-3.5 sm:p-4 gap-3.5">
         {/* Foto Thumbnail */}
-        <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 flex-shrink-0 bg-neutral-50 rounded-xl overflow-hidden border border-neutral-100">
           {report.photo_url ? (
             <img
               src={report.photo_url}
@@ -46,9 +47,9 @@ export default function ReportCard({ report }: ReportCardProps) {
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+            <div className="w-full h-full flex flex-col items-center justify-center text-neutral-400 bg-neutral-50">
               <ImageIcon className="w-6 h-6 stroke-[1.5]" />
-              <span className="text-[10px] mt-1 text-slate-400">Tanpa Foto</span>
+              <span className="text-[10px] mt-1 font-semibold text-neutral-400">Tanpa Foto</span>
             </div>
           )}
         </div>
@@ -56,25 +57,37 @@ export default function ReportCard({ report }: ReportCardProps) {
         {/* Info Konten */}
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <div>
-            <div className="flex items-center justify-between gap-1 mb-1.5">
-              <CategoryBadge category={report.category} />
-              <span className="text-[11px] text-slate-400 flex items-center gap-1 font-mono">
+            <div className="flex items-center justify-between gap-1.5 mb-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5">
+                <CategoryBadge category={report.category} />
+                <StatusBadge status={report.status} isOffline={report.is_offline} />
+              </div>
+              <span className="text-[10px] text-neutral-400 flex items-center gap-1 font-medium">
                 <Calendar className="w-3 h-3" />
                 {formatTimeAgo(report.created_at)}
               </span>
             </div>
 
-            <h3 className="font-semibold text-slate-900 text-sm line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug">
+            <h3 className="font-bold text-neutral-900 text-sm line-clamp-2 group-hover:text-primary transition-colors leading-snug">
               {report.title}
             </h3>
           </div>
 
-          <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center text-xs text-slate-600 line-clamp-1 gap-1">
-            <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-blue-600" />
-            <span className="truncate font-medium">
-              {report.facility_name || 'Fasilitas Kampus'}
-              {report.facility_building ? ` • ${report.facility_building}` : ''}
-            </span>
+          <div>
+            {report.feedback && (
+              <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-primary font-semibold truncate bg-primary/5 px-2 py-0.5 rounded-md border border-primary/10">
+                <MessageSquare className="w-3 h-3 shrink-0" />
+                <span className="truncate">Ditanggapi: &ldquo;{report.feedback}&rdquo;</span>
+              </div>
+            )}
+
+            <div className="mt-2 pt-2 border-t border-neutral-100 flex items-center text-xs text-neutral-600 line-clamp-1 gap-1.5">
+              <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-primary" />
+              <span className="truncate font-semibold text-neutral-700">
+                {report.facility_name || 'Fasilitas Kampus'}
+                {report.facility_building ? ` • ${report.facility_building}` : ''}
+              </span>
+            </div>
           </div>
         </div>
       </div>

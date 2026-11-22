@@ -1,5 +1,13 @@
 import React from 'react';
 
+export function Skeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={`animate-pulse bg-neutral-200/80 rounded-xl ${className}`} />
+  );
+}
+
+export default Skeleton;
+
 export function ReportCardSkeleton() {
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-3 flex gap-3 animate-pulse shadow-sm">

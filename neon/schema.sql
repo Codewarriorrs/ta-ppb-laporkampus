@@ -12,8 +12,12 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'mahasiswa', -- 'mahasiswa' atau 'birokrasi'
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Migrasi kolom jika tabel sudah ada sebelumnya
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) NOT NULL DEFAULT 'mahasiswa';
 
 -- 2. Tabel Facilities (Fasilitas Kampus)
 CREATE TABLE IF NOT EXISTS facilities (
@@ -36,11 +40,22 @@ CREATE TABLE IF NOT EXISTS reports (
     photo_url TEXT,
     latitude NUMERIC(10, 7),
     longitude NUMERIC(10, 7),
+    status VARCHAR(50) NOT NULL DEFAULT 'menunggu', -- 'menunggu', 'diproses', 'selesai', 'ditolak'
+    feedback TEXT, -- Tanggapan resmi dari pihak kampus / birokrasi
+    feedback_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    feedback_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Migrasi kolom jika tabel sudah ada sebelumnya
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS status VARCHAR(50) NOT NULL DEFAULT 'menunggu';
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS feedback TEXT;
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS feedback_by UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS feedback_at TIMESTAMP WITH TIME ZONE;
 
 -- Indexing
 CREATE INDEX IF NOT EXISTS idx_reports_user_id ON reports(user_id);
 CREATE INDEX IF NOT EXISTS idx_reports_facility_id ON reports(facility_id);
 CREATE INDEX IF NOT EXISTS idx_reports_category ON reports(category);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
 CREATE INDEX IF NOT EXISTS idx_reports_created_at ON reports(created_at DESC);

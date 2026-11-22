@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Aplikasi Progressive Web App untuk pelaporan fasilitas dan sarana prasarana kampus',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#2563eb',
+    background_color: '#F7F8FC',
+    theme_color: '#1A3F8F',
     orientation: 'portrait',
     icons: [
       {

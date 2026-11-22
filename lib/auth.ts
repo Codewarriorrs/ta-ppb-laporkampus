@@ -31,6 +31,7 @@ export async function signToken(payload: Omit<JWTPayload, 'exp'>): Promise<strin
     userId: payload.userId,
     name: payload.name,
     email: payload.email,
+    role: payload.role || 'mahasiswa',
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -48,6 +49,7 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
       userId: payload.userId as string,
       name: payload.name as string,
       email: payload.email as string,
+      role: (payload.role as any) || 'mahasiswa',
       exp: payload.exp,
     };
   } catch (error) {

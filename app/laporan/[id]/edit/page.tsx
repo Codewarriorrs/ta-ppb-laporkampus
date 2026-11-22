@@ -129,12 +129,12 @@ export default function EditReportPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 min-h-screen">
+    <div className="flex-1 flex flex-col bg-neutral-50/50 min-h-screen">
       <AppHeader title="Edit Laporan" showBack={true} />
 
-      <div className="flex-1 p-4">
+      <div className="flex-1 p-4 max-w-2xl mx-auto w-full">
         {loading ? (
-          <div className="p-8 text-center text-xs text-gray-500">Memuat data...</div>
+          <div className="p-8 text-center text-xs text-neutral-500">Memuat data...</div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
@@ -144,13 +144,13 @@ export default function EditReportPage() {
             )}
 
             {/* Pilih Fasilitas */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-1">
-              <label className="block text-xs font-semibold text-gray-700">Fasilitas Kampus</label>
+            <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs space-y-1">
+              <label className="block text-xs font-semibold text-neutral-700">Fasilitas Kampus</label>
               <select
                 required
                 value={facilityId}
                 onChange={(e) => setFacilityId(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">-- Pilih Fasilitas / Gedung --</option>
                 {facilities.map((f) => (
@@ -162,13 +162,13 @@ export default function EditReportPage() {
             </div>
 
             {/* Kategori */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-1">
-              <label className="block text-xs font-semibold text-gray-700">Kategori</label>
+            <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs space-y-1">
+              <label className="block text-xs font-semibold text-neutral-700">Kategori</label>
               <select
                 required
                 value={category}
                 onChange={(e) => setCategory(e.target.value as Category)}
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 {CATEGORIES.map((c) => (
                   <option key={c} value={c}>
@@ -179,9 +179,9 @@ export default function EditReportPage() {
             </div>
 
             {/* Judul & Deskripsi */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-3">
+            <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">
                   Judul Laporan
                 </label>
                 <input
@@ -189,12 +189,12 @@ export default function EditReportPage() {
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-neutral-700 mb-1">
                   Deskripsi Kerusakan
                 </label>
                 <textarea
@@ -202,24 +202,24 @@ export default function EditReportPage() {
                   rows={4}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-xs text-neutral-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                 />
               </div>
             </div>
 
             {/* Foto Bukti */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-2">
-              <label className="block text-xs font-semibold text-gray-700">Foto Bukti</label>
+            <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs space-y-2">
+              <label className="block text-xs font-semibold text-neutral-700">Foto Bukti</label>
               {photoUrl && (
-                <div className="w-full h-40 rounded-xl overflow-hidden border border-gray-200 relative mb-2">
+                <div className="w-full h-40 rounded-xl overflow-hidden border border-neutral-200 relative mb-2">
                   <img src={photoUrl} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               )}
-              <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 rounded-xl cursor-pointer text-xs font-medium text-gray-600 transition-colors">
+              <label className="flex items-center justify-center gap-2 w-full py-2.5 bg-neutral-50 hover:bg-neutral-100 border border-dashed border-neutral-300 rounded-xl cursor-pointer text-xs font-medium text-neutral-600 transition-colors">
                 {uploading ? (
-                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
                 ) : (
-                  <Camera className="w-4 h-4 text-gray-500" />
+                  <Camera className="w-4 h-4 text-neutral-500" />
                 )}
                 <span>{uploading ? 'Mengunggah...' : 'Ganti Foto Bukti'}</span>
                 <input
@@ -232,8 +232,8 @@ export default function EditReportPage() {
             </div>
 
             {/* Peta Pin */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs space-y-2">
-              <label className="block text-xs font-semibold text-gray-700">
+            <div className="bg-white p-4 rounded-2xl border border-neutral-200/80 shadow-xs space-y-2">
+              <label className="block text-xs font-semibold text-neutral-700">
                 Sesuaikan Lokasi di Peta
               </label>
               <DynamicMap
@@ -251,7 +251,7 @@ export default function EditReportPage() {
             <button
               type="submit"
               disabled={submitting || uploading}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-60"
+              className="w-full py-3 bg-primary hover:bg-primary-hover text-white font-semibold text-xs rounded-xl shadow-sm shadow-primary/20 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-60"
             >
               {submitting ? (
                 <>

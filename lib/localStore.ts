@@ -7,6 +7,7 @@ export interface StoreData {
     name: string;
     email: string;
     password_hash: string;
+    role?: 'mahasiswa' | 'birokrasi';
     created_at: string;
   }>;
   facilities: Facility[];
@@ -105,13 +106,15 @@ const INITIAL_USERS = [
     name: 'Ahmad Zaidan',
     email: 'zaidan@kampus.ac.id',
     password_hash: DEFAULT_PASSWORD_HASH,
+    role: 'mahasiswa' as const,
     created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
   },
   {
     id: 'a0000000-0000-0000-0000-000000000002',
-    name: 'Budi Santoso',
+    name: 'Budi Santoso (Birokrasi Sarpras)',
     email: 'budi@kampus.ac.id',
     password_hash: DEFAULT_PASSWORD_HASH,
+    role: 'birokrasi' as const,
     created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
   },
 ];
@@ -271,6 +274,20 @@ class LocalDataStore {
     this.data.reports[idx] = {
       ...this.data.reports[idx],
       ...updates,
+    };
+    return this.data.reports[idx];
+  }
+  updateReportFeedback(id: string, feedback: string, status: any, birokrasiUserId: string) {
+    const idx = this.data.reports.findIndex((r) => r.id === id);
+    if (idx === -1) return null;
+    const birokrasiUser = this.findUserById(birokrasiUserId);
+    this.data.reports[idx] = {
+      ...this.data.reports[idx],
+      feedback,
+      status,
+      feedback_by: birokrasiUserId,
+      feedback_by_name: birokrasiUser ? birokrasiUser.name : 'Pihak Kampus',
+      feedback_at: new Date().toISOString(),
     };
     return this.data.reports[idx];
   }

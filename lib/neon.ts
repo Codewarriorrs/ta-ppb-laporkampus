@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { User, Facility, Report } from '@/types';
+import { User, Facility, Report, UserRole, ReportStatus } from '@/types';
 
 const databaseUrl = process.env.DATABASE_URL || '';
 
@@ -23,13 +23,14 @@ export interface NeonUser {
   name: string;
   email: string;
   password_hash: string;
+  role: UserRole;
   created_at: string;
 }
 
 export async function neonFindUserByEmail(email: string): Promise<NeonUser | null> {
   if (!sql) return null;
   const rows = await sql`
-    SELECT id, name, email, password_hash, created_at 
+    SELECT id, name, email, password_hash, COALESCE(role, 'mahasiswa') AS role, created_at 
     FROM users 
     WHERE LOWER(email) = LOWER(${email}) 
     LIMIT 1
@@ -40,7 +41,7 @@ export async function neonFindUserByEmail(email: string): Promise<NeonUser | nul
 export async function neonFindUserById(id: string): Promise<Omit<NeonUser, 'password_hash'> | null> {
   if (!sql) return null;
   const rows = await sql`
-    SELECT id, name, email, created_at 
+    SELECT id, name, email, COALESCE(role, 'mahasiswa') AS role, created_at 
     FROM users 
     WHERE id = ${id} 
     LIMIT 1
@@ -48,12 +49,17 @@ export async function neonFindUserById(id: string): Promise<Omit<NeonUser, 'pass
   return (rows[0] as unknown as Omit<NeonUser, 'password_hash'>) || null;
 }
 
-export async function neonCreateUser(name: string, email: string, password_hash: string): Promise<Omit<NeonUser, 'password_hash'> | null> {
+export async function neonCreateUser(
+  name: string,
+  email: string,
+  password_hash: string,
+  role: UserRole = 'mahasiswa'
+): Promise<Omit<NeonUser, 'password_hash'> | null> {
   if (!sql) return null;
   const rows = await sql`
-    INSERT INTO users (name, email, password_hash)
-    VALUES (${name}, LOWER(${email}), ${password_hash})
-    RETURNING id, name, email, created_at
+    INSERT INTO users (name, email, password_hash, role)
+    VALUES (${name}, LOWER(${email}), ${password_hash}, ${role})
+    RETURNING id, name, email, role, created_at
   `;
   return (rows[0] as unknown as Omit<NeonUser, 'password_hash'>) || null;
 }
@@ -101,10 +107,16 @@ export async function neonGetFacilityById(id: string) {
       r.photo_url,
       r.latitude,
       r.longitude,
+      COALESCE(r.status, 'menunggu') AS status,
+      r.feedback,
+      r.feedback_by,
+      r.feedback_at,
       r.created_at,
-      u.name AS user_name
+      u.name AS user_name,
+      fb.name AS feedback_by_name
     FROM reports r
     LEFT JOIN users u ON r.user_id = u.id
+    LEFT JOIN users fb ON r.feedback_by = fb.id
     WHERE r.facility_id = ${id}
     ORDER BY r.created_at DESC
   `;
@@ -119,35 +131,14 @@ export async function neonGetFacilityById(id: string) {
 // ==========================================
 // 3. HELPER LAPORAN
 // ==========================================
-export async function neonGetReports(q = '', category = '') {
+export async function neonGetReports(q = '', category = '', status = '') {
   if (!sql) return [];
 
-  // Query dengan join fasilitas dan user
-  let queryText = `
-    SELECT 
-      r.id,
-      r.user_id,
-      r.facility_id,
-      r.category,
-      r.title,
-      r.description,
-      r.photo_url,
-      r.latitude,
-      r.longitude,
-      r.created_at,
-      f.name AS facility_name,
-      f.building AS facility_building,
-      u.name AS user_name
-    FROM reports r
-    LEFT JOIN facilities f ON r.facility_id = f.id
-    LEFT JOIN users u ON r.user_id = u.id
-    WHERE 1=1
-  `;
+  const searchPattern = q ? `%${q}%` : '';
 
   if (category && category !== 'Semua') {
     if (q) {
-      const searchPattern = `%${q}%`;
-      return await sql`
+      return (await sql`
         SELECT 
           r.id,
           r.user_id,
@@ -158,19 +149,25 @@ export async function neonGetReports(q = '', category = '') {
           r.photo_url,
           r.latitude,
           r.longitude,
+          COALESCE(r.status, 'menunggu') AS status,
+          r.feedback,
+          r.feedback_by,
+          r.feedback_at,
           r.created_at,
           f.name AS facility_name,
           f.building AS facility_building,
-          u.name AS user_name
+          u.name AS user_name,
+          fb.name AS feedback_by_name
         FROM reports r
         LEFT JOIN facilities f ON r.facility_id = f.id
         LEFT JOIN users u ON r.user_id = u.id
+        LEFT JOIN users fb ON r.feedback_by = fb.id
         WHERE r.category = ${category}
           AND (r.title ILIKE ${searchPattern} OR r.description ILIKE ${searchPattern})
         ORDER BY r.created_at DESC
-      ` as Report[];
+      `) as Report[];
     } else {
-      return await sql`
+      return (await sql`
         SELECT 
           r.id,
           r.user_id,
@@ -181,22 +178,27 @@ export async function neonGetReports(q = '', category = '') {
           r.photo_url,
           r.latitude,
           r.longitude,
+          COALESCE(r.status, 'menunggu') AS status,
+          r.feedback,
+          r.feedback_by,
+          r.feedback_at,
           r.created_at,
           f.name AS facility_name,
           f.building AS facility_building,
-          u.name AS user_name
+          u.name AS user_name,
+          fb.name AS feedback_by_name
         FROM reports r
         LEFT JOIN facilities f ON r.facility_id = f.id
         LEFT JOIN users u ON r.user_id = u.id
+        LEFT JOIN users fb ON r.feedback_by = fb.id
         WHERE r.category = ${category}
         ORDER BY r.created_at DESC
-      ` as Report[];
+      `) as Report[];
     }
   }
 
   if (q) {
-    const searchPattern = `%${q}%`;
-    return await sql`
+    return (await sql`
       SELECT 
         r.id,
         r.user_id,
@@ -207,19 +209,25 @@ export async function neonGetReports(q = '', category = '') {
         r.photo_url,
         r.latitude,
         r.longitude,
+        COALESCE(r.status, 'menunggu') AS status,
+        r.feedback,
+        r.feedback_by,
+        r.feedback_at,
         r.created_at,
         f.name AS facility_name,
         f.building AS facility_building,
-        u.name AS user_name
+        u.name AS user_name,
+        fb.name AS feedback_by_name
       FROM reports r
       LEFT JOIN facilities f ON r.facility_id = f.id
       LEFT JOIN users u ON r.user_id = u.id
+      LEFT JOIN users fb ON r.feedback_by = fb.id
       WHERE (r.title ILIKE ${searchPattern} OR r.description ILIKE ${searchPattern})
       ORDER BY r.created_at DESC
-    ` as Report[];
+    `) as Report[];
   }
 
-  return await sql`
+  return (await sql`
     SELECT 
       r.id,
       r.user_id,
@@ -230,20 +238,26 @@ export async function neonGetReports(q = '', category = '') {
       r.photo_url,
       r.latitude,
       r.longitude,
+      COALESCE(r.status, 'menunggu') AS status,
+      r.feedback,
+      r.feedback_by,
+      r.feedback_at,
       r.created_at,
       f.name AS facility_name,
       f.building AS facility_building,
-      u.name AS user_name
+      u.name AS user_name,
+      fb.name AS feedback_by_name
     FROM reports r
     LEFT JOIN facilities f ON r.facility_id = f.id
     LEFT JOIN users u ON r.user_id = u.id
+    LEFT JOIN users fb ON r.feedback_by = fb.id
     ORDER BY r.created_at DESC
-  ` as Report[];
+  `) as Report[];
 }
 
 export async function neonGetReportsByUserId(userId: string) {
   if (!sql) return [];
-  return await sql`
+  return (await sql`
     SELECT 
       r.id,
       r.user_id,
@@ -254,16 +268,22 @@ export async function neonGetReportsByUserId(userId: string) {
       r.photo_url,
       r.latitude,
       r.longitude,
+      COALESCE(r.status, 'menunggu') AS status,
+      r.feedback,
+      r.feedback_by,
+      r.feedback_at,
       r.created_at,
       f.name AS facility_name,
       f.building AS facility_building,
-      u.name AS user_name
+      u.name AS user_name,
+      fb.name AS feedback_by_name
     FROM reports r
     LEFT JOIN facilities f ON r.facility_id = f.id
     LEFT JOIN users u ON r.user_id = u.id
+    LEFT JOIN users fb ON r.feedback_by = fb.id
     WHERE r.user_id = ${userId}
     ORDER BY r.created_at DESC
-  ` as Report[];
+  `) as Report[];
 }
 
 export async function neonGetReportById(id: string): Promise<Report | null> {
@@ -279,13 +299,19 @@ export async function neonGetReportById(id: string): Promise<Report | null> {
       r.photo_url,
       r.latitude,
       r.longitude,
+      COALESCE(r.status, 'menunggu') AS status,
+      r.feedback,
+      r.feedback_by,
+      r.feedback_at,
       r.created_at,
       f.name AS facility_name,
       f.building AS facility_building,
-      u.name AS user_name
+      u.name AS user_name,
+      fb.name AS feedback_by_name
     FROM reports r
     LEFT JOIN facilities f ON r.facility_id = f.id
     LEFT JOIN users u ON r.user_id = u.id
+    LEFT JOIN users fb ON r.feedback_by = fb.id
     WHERE r.id = ${id}
     LIMIT 1
   `;
@@ -305,7 +331,7 @@ export async function neonCreateReport(data: {
   if (!sql) return null;
   const inserted = await sql`
     INSERT INTO reports (
-      user_id, facility_id, category, title, description, photo_url, latitude, longitude
+      user_id, facility_id, category, title, description, photo_url, latitude, longitude, status
     ) VALUES (
       ${data.user_id}, 
       ${data.facility_id}, 
@@ -314,7 +340,8 @@ export async function neonCreateReport(data: {
       ${data.description}, 
       ${data.photo_url || null}, 
       ${data.latitude !== undefined ? data.latitude : null}, 
-      ${data.longitude !== undefined ? data.longitude : null}
+      ${data.longitude !== undefined ? data.longitude : null},
+      'menunggu'
     )
     RETURNING id
   `;
@@ -326,7 +353,6 @@ export async function neonCreateReport(data: {
 export async function neonUpdateReport(id: string, updates: any) {
   if (!sql) return null;
 
-  // Update dinamis
   await sql`
     UPDATE reports SET
       facility_id = COALESCE(${updates.facility_id || null}, facility_id),
@@ -335,7 +361,29 @@ export async function neonUpdateReport(id: string, updates: any) {
       description = COALESCE(${updates.description || null}, description),
       photo_url = COALESCE(${updates.photo_url !== undefined ? updates.photo_url : null}, photo_url),
       latitude = COALESCE(${updates.latitude !== undefined ? updates.latitude : null}, latitude),
-      longitude = COALESCE(${updates.longitude !== undefined ? updates.longitude : null}, longitude)
+      longitude = COALESCE(${updates.longitude !== undefined ? updates.longitude : null}, longitude),
+      status = COALESCE(${updates.status || null}, status),
+      feedback = COALESCE(${updates.feedback || null}, feedback)
+    WHERE id = ${id}
+  `;
+
+  return neonGetReportById(id);
+}
+
+export async function neonUpdateReportFeedback(
+  id: string,
+  feedback: string,
+  status: ReportStatus,
+  birokrasiUserId: string
+) {
+  if (!sql) return null;
+
+  await sql`
+    UPDATE reports SET
+      feedback = ${feedback},
+      status = ${status},
+      feedback_by = ${birokrasiUserId},
+      feedback_at = NOW()
     WHERE id = ${id}
   `;
 
