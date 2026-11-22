@@ -217,17 +217,17 @@ function LoginForm() {
         <div
           className="hidden lg:flex lg:col-span-6 p-12 flex-col justify-between relative overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #2d2a45 0%, #1e1b38 60%, #141226 100%)',
+            background: 'linear-gradient(145deg, #1e3a8a 0%, #172554 60%, #0f172a 100%)',
           }}
         >
           {/* Soft 3D Glow Orbs */}
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/25 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-24 -right-24 w-72 h-72 bg-sky-400/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Top Badge */}
+          {/* Top Label */}
           <div className="relative z-10">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-[11px] font-bold text-accent tracking-wide uppercase border border-white/10">
-              ✦ Sistem Terpadu Kampus
+            <span className="text-xs font-bold text-sky-300 tracking-wider uppercase">
+              Sistem Terpadu Kampus
             </span>
           </div>
 

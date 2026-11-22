@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Sistem pelaporan fasilitas dan sarana prasarana kampus berbasis web modern',
     start_url: '/',
     display: 'standalone',
-    background_color: '#eef1fb',
-    theme_color: '#6d5ae6',
+    background_color: '#f4f6fb',
+    theme_color: '#1e3a8a',
     orientation: 'portrait',
     icons: [
       {

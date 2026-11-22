@@ -5,22 +5,22 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #6d5ae6;
-  --color-primary-hover: #5b47dc;
-  --color-primary-dark: #4b37be;
-  --color-background: #eef1fb;
+  --color-primary: #1e3a8a;
+  --color-primary-hover: #172554;
+  --color-primary-dark: #0f172a;
+  --color-background: #f4f6fb;
   --color-surface: #ffffff;
-  --color-surface-strong: #f6f4ff;
-  --color-text: #2d2a45;
-  --color-text-muted: #6b6690;
-  --color-accent: #ff9e7d;
-  --color-mint: #7be0c4;
+  --color-surface-strong: #f0f4fa;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+  --color-accent: #0284c7;
+  --color-mint: #10b981;
 }
 
 body {
   font-family: 'Quicksand', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: #eef1fb;
-  color: #2d2a45;
+  background-color: #f4f6fb;
+  color: #0f172a;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
@@ -31,48 +31,21 @@ input, textarea, select {
 
 /* Custom soft scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c7cee5;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #9fa8c7;
+  background: #94a3b8;
 }
 
 /* Safe area padding untuk mobile notch / bottom nav */
 .pb-safe {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
-}
-
-/* Soft 3D Glow & Ambient Shading helpers */
-.soft-3d-card {
-  background: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0 16px 36px -10px rgba(109, 90, 230, 0.12), 0 4px 16px -2px rgba(45, 42, 69, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-}
-
-.soft-3d-button {
-  background: #6d5ae6;
-  color: #ffffff;
-  border-radius: 20px;
-  box-shadow: 0 8px 24px -4px rgba(109, 90, 230, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.soft-3d-button:hover {
-  background: #5b47dc;
-  transform: translateY(-1px);
-  box-shadow: 0 12px 28px -4px rgba(109, 90, 230, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4);
-}
-
-.soft-3d-button:active {
-  transform: translateY(1px);
-  box-shadow: 0 4px 12px -2px rgba(109, 90, 230, 0.4);
 }

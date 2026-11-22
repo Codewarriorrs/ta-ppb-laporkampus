@@ -27,9 +27,9 @@ export function AppLogoIcon({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
     <div
       className={`${sizeMap[size]} relative flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105`}
       style={{
-        background: 'linear-gradient(135deg, #8575ea 0%, #6d5ae6 60%, #4b37be 100%)',
+        background: 'linear-gradient(135deg, #2563eb 0%, #1e3a8a 60%, #0f172a 100%)',
         boxShadow:
-          '0 10px 25px -5px rgba(109, 90, 230, 0.45), inset 0 2px 2px rgba(255, 255, 255, 0.45), inset 0 -2px 4px rgba(43, 31, 118, 0.35)',
+          '0 10px 25px -5px rgba(30, 58, 138, 0.45), inset 0 2px 2px rgba(255, 255, 255, 0.45), inset 0 -2px 4px rgba(15, 23, 42, 0.35)',
       }}
     >
       {/* 3D Soft Light Reflection Layer */}

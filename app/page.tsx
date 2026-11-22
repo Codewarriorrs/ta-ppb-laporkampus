@@ -144,10 +144,10 @@ export default function HomePage() {
 
           <div className="space-y-3 relative z-10 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-surface-strong text-primary border border-primary/20">
+              <span className="text-xs font-bold text-primary">
                 Pusat Pelaporan Kampus
               </span>
-              <span className="text-[11px] font-bold text-neutral-400 font-sans">
+              <span className="text-xs font-medium text-neutral-400 font-sans">
                 • Pantau & Jaga Sarpras Bersama
               </span>
             </div>
