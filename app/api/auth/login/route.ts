@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
+import { isNeonConfigured, neonFindUserByEmail } from '@/lib/neon';
 import { comparePassword, signToken, AUTH_COOKIE_NAME } from '@/lib/auth';
 import { localStore } from '@/lib/localStore';
 
@@ -30,23 +31,22 @@ export async function POST(request: Request) {
 
     let user: { id: string; name: string; email: string; password_hash: string } | null = null;
 
-    // A. Fallback Local Data Store
-    if (!isSupabaseConfigured) {
-      const found = localStore.findUserByEmail(email);
-      if (found) {
-        user = found;
-      }
-    } else {
-      // B. Supabase PostgreSQL
+    // 1. NEON POSTGRES
+    if (isNeonConfigured) {
+      const dbUser = await neonFindUserByEmail(email);
+      if (dbUser) user = dbUser;
+    } else if (isSupabaseConfigured) {
+      // 2. SUPABASE POSTGRES
       const { data: dbUser } = await supabaseServer
         .from('users')
         .select('id, name, email, password_hash')
         .eq('email', email.toLowerCase())
         .single();
-
-      if (dbUser) {
-        user = dbUser;
-      }
+      if (dbUser) user = dbUser;
+    } else {
+      // 3. FALLBACK LOCAL STORE
+      const found = localStore.findUserByEmail(email);
+      if (found) user = found;
     }
 
     if (!user) {
@@ -60,7 +60,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Bandingkan password hash
     const isMatch = await comparePassword(password, user.password_hash);
     if (!isMatch) {
       return NextResponse.json(
@@ -73,7 +72,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Buat JWT token
     const token = await signToken({
       userId: user.id,
       name: user.name,
@@ -95,7 +93,6 @@ export async function POST(request: Request) {
       { status: 200 }
     );
 
-    // Pasang session cookie
     response.cookies.set(AUTH_COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

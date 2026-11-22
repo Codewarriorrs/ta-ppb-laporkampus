@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
+import { isNeonConfigured, neonFindUserByEmail, neonCreateUser } from '@/lib/neon';
 import { hashPassword, signToken, AUTH_COOKIE_NAME } from '@/lib/auth';
 import { localStore } from '@/lib/localStore';
 
@@ -29,28 +30,29 @@ export async function POST(request: Request) {
 
     const { name, email, password } = validatedData.data;
 
-    // A. Fallback Local Data Store
-    if (!isSupabaseConfigured) {
-      const existing = localStore.findUserByEmail(email);
-      if (existing) {
+    // 1. NEON POSTGRES
+    if (isNeonConfigured) {
+      const existingUser = await neonFindUserByEmail(email);
+      if (existingUser) {
         return NextResponse.json(
           {
             success: false,
             data: null,
-            message: 'Email sudah terdaftar. Silakan login atau gunakan email lain.',
+            message: 'Email sudah terdaftar di database Neon. Silakan login atau gunakan email lain.',
           },
           { status: 409 }
         );
       }
 
       const password_hash = await hashPassword(password);
-      const newUser = localStore.addUser({
-        id: `u-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        name,
-        email: email.toLowerCase(),
-        password_hash,
-        created_at: new Date().toISOString(),
-      });
+      const newUser = await neonCreateUser(name, email, password_hash);
+
+      if (!newUser) {
+        return NextResponse.json(
+          { success: false, data: null, message: 'Gagal membuat akun di database Neon.' },
+          { status: 500 }
+        );
+      }
 
       const token = await signToken({
         userId: newUser.id,
@@ -61,13 +63,7 @@ export async function POST(request: Request) {
       const response = NextResponse.json(
         {
           success: true,
-          data: {
-            user: {
-              id: newUser.id,
-              name: newUser.name,
-              email: newUser.email,
-            },
-          },
+          data: { user: { id: newUser.id, name: newUser.name, email: newUser.email } },
           message: 'Registrasi berhasil! Selamat datang di LaporKampus.',
         },
         { status: 201 }
@@ -84,14 +80,76 @@ export async function POST(request: Request) {
       return response;
     }
 
-    // B. Supabase PostgreSQL
-    const { data: existingUser } = await supabaseServer
-      .from('users')
-      .select('id, email')
-      .eq('email', email.toLowerCase())
-      .single();
+    // 2. SUPABASE POSTGRES
+    if (isSupabaseConfigured) {
+      const { data: existingUser } = await supabaseServer
+        .from('users')
+        .select('id, email')
+        .eq('email', email.toLowerCase())
+        .single();
 
-    if (existingUser) {
+      if (existingUser) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Email sudah terdaftar. Silakan login atau gunakan email lain.',
+          },
+          { status: 409 }
+        );
+      }
+
+      const password_hash = await hashPassword(password);
+      const { data: newUser, error: insertError } = await supabaseServer
+        .from('users')
+        .insert({
+          name,
+          email: email.toLowerCase(),
+          password_hash,
+        })
+        .select('id, name, email, created_at')
+        .single();
+
+      if (insertError || !newUser) {
+        return NextResponse.json(
+          {
+            success: false,
+            data: null,
+            message: 'Gagal membuat akun di database Supabase: ' + (insertError?.message || 'Unknown error'),
+          },
+          { status: 500 }
+        );
+      }
+
+      const token = await signToken({
+        userId: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+      });
+
+      const response = NextResponse.json(
+        {
+          success: true,
+          data: { user: { id: newUser.id, name: newUser.name, email: newUser.email } },
+          message: 'Registrasi berhasil! Selamat datang di LaporKampus.',
+        },
+        { status: 201 }
+      );
+
+      response.cookies.set(AUTH_COOKIE_NAME, token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      return response;
+    }
+
+    // 3. FALLBACK LOCAL STORE
+    const existing = localStore.findUserByEmail(email);
+    if (existing) {
       return NextResponse.json(
         {
           success: false,
@@ -103,26 +161,13 @@ export async function POST(request: Request) {
     }
 
     const password_hash = await hashPassword(password);
-    const { data: newUser, error: insertError } = await supabaseServer
-      .from('users')
-      .insert({
-        name,
-        email: email.toLowerCase(),
-        password_hash,
-      })
-      .select('id, name, email, created_at')
-      .single();
-
-    if (insertError || !newUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Gagal membuat akun baru di database: ' + (insertError?.message || 'Unknown error'),
-        },
-        { status: 500 }
-      );
-    }
+    const newUser = localStore.addUser({
+      id: `u-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      name,
+      email: email.toLowerCase(),
+      password_hash,
+      created_at: new Date().toISOString(),
+    });
 
     const token = await signToken({
       userId: newUser.id,
@@ -133,13 +178,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json(
       {
         success: true,
-        data: {
-          user: {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-          },
-        },
+        data: { user: { id: newUser.id, name: newUser.name, email: newUser.email } },
         message: 'Registrasi berhasil! Selamat datang di LaporKampus.',
       },
       { status: 201 }

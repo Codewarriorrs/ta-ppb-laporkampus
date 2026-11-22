@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
+import { isNeonConfigured, neonGetReportById, neonUpdateReport, neonDeleteReport } from '@/lib/neon';
 import { getAuthUserFromRequest } from '@/lib/auth';
 import { localStore } from '@/lib/localStore';
 
@@ -23,61 +24,60 @@ export async function GET(
   try {
     const { id } = params;
 
-    // A. Fallback Local Data Store
-    if (!isSupabaseConfigured) {
-      const report = localStore.getReportById(id);
+    // 1. NEON POSTGRES
+    if (isNeonConfigured) {
+      const report = await neonGetReportById(id);
       if (!report) {
         return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            message: 'Laporan tidak ditemukan.',
-          },
+          { success: false, data: null, message: 'Laporan tidak ditemukan.' },
           { status: 404 }
         );
       }
-
       return NextResponse.json(
-        {
-          success: true,
-          data: report,
-          message: 'Detail laporan berhasil diambil (mode lokal).',
-        },
+        { success: true, data: report, message: 'Detail laporan berhasil diambil (Neon Postgres).' },
         { status: 200 }
       );
     }
 
-    // B. Supabase PostgreSQL
-    const { data: report, error } = await supabaseServer
-      .from('reports')
-      .select('*, facilities(id, name, building, description), users(id, name, email)')
-      .eq('id', id)
-      .single();
+    // 2. SUPABASE POSTGRES
+    if (isSupabaseConfigured) {
+      const { data: report, error } = await supabaseServer
+        .from('reports')
+        .select('*, facilities(id, name, building, description), users(id, name, email)')
+        .eq('id', id)
+        .single();
 
-    if (error || !report) {
+      if (error || !report) {
+        return NextResponse.json(
+          { success: false, data: null, message: 'Laporan tidak ditemukan.' },
+          { status: 404 }
+        );
+      }
+
+      const formattedReport = {
+        ...report,
+        facility_name: report.facilities?.name || 'Fasilitas Kampus',
+        facility_building: report.facilities?.building || '',
+        user_name: report.users?.name || 'Mahasiswa',
+      };
+
       return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Laporan tidak ditemukan.',
-        },
+        { success: true, data: formattedReport, message: 'Detail laporan berhasil diambil (Supabase).' },
+        { status: 200 }
+      );
+    }
+
+    // 3. FALLBACK LOCAL STORE
+    const report = localStore.getReportById(id);
+    if (!report) {
+      return NextResponse.json(
+        { success: false, data: null, message: 'Laporan tidak ditemukan.' },
         { status: 404 }
       );
     }
 
-    const formattedReport = {
-      ...report,
-      facility_name: report.facilities?.name || 'Fasilitas Kampus',
-      facility_building: report.facilities?.building || '',
-      user_name: report.users?.name || 'Mahasiswa',
-    };
-
     return NextResponse.json(
-      {
-        success: true,
-        data: formattedReport,
-        message: 'Detail laporan berhasil diambil.',
-      },
+      { success: true, data: report, message: 'Detail laporan berhasil diambil (mode lokal).' },
       { status: 200 }
     );
   } catch (error: any) {
@@ -100,11 +100,7 @@ export async function PUT(
     const authUser = await getAuthUserFromRequest(request);
     if (!authUser) {
       return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Anda harus login untuk mengedit laporan.',
-        },
+        { success: false, data: null, message: 'Anda harus login untuk mengedit laporan.' },
         { status: 401 }
       );
     }
@@ -125,140 +121,117 @@ export async function PUT(
       );
     }
 
-    // A. Fallback Local Data Store
-    if (!isSupabaseConfigured) {
-      const existing = localStore.getReportById(id);
+    // 1. NEON POSTGRES
+    if (isNeonConfigured) {
+      const existing = await neonGetReportById(id);
       if (!existing) {
         return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            message: 'Laporan tidak ditemukan.',
-          },
+          { success: false, data: null, message: 'Laporan tidak ditemukan.' },
           { status: 404 }
         );
       }
 
       if (existing.user_id !== authUser.userId) {
         return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            message: 'Akses ditolak: Anda hanya dapat mengedit laporan buatan Anda sendiri.',
-          },
+          { success: false, data: null, message: 'Akses ditolak: Anda hanya dapat mengedit laporan buatan Anda sendiri.' },
           { status: 403 }
         );
       }
 
-      const updateData: any = { ...validatedData.data };
-      if (validatedData.data.facility_id) {
-        const fac = localStore.getFacilityById(validatedData.data.facility_id);
-        if (fac) {
-          updateData.facility_name = fac.name;
-          updateData.facility_building = fac.building;
-        }
-      }
-
-      const updated = localStore.updateReport(id, updateData);
-
+      const updated = await neonUpdateReport(id, validatedData.data);
       return NextResponse.json(
-        {
-          success: true,
-          data: updated,
-          message: 'Laporan berhasil diperbarui.',
-        },
+        { success: true, data: updated, message: 'Laporan berhasil diperbarui (Neon Postgres).' },
         { status: 200 }
       );
     }
 
-    // B. Supabase PostgreSQL
-    const { data: existingReport, error: fetchError } = await supabaseServer
-      .from('reports')
-      .select('id, user_id')
-      .eq('id', id)
-      .single();
+    // 2. SUPABASE POSTGRES
+    if (isSupabaseConfigured) {
+      const { data: existingReport, error: fetchError } = await supabaseServer
+        .from('reports')
+        .select('id, user_id')
+        .eq('id', id)
+        .single();
 
-    if (fetchError || !existingReport) {
+      if (fetchError || !existingReport) {
+        return NextResponse.json(
+          { success: false, data: null, message: 'Laporan tidak ditemukan.' },
+          { status: 404 }
+        );
+      }
+
+      if (existingReport.user_id !== authUser.userId) {
+        return NextResponse.json(
+          { success: false, data: null, message: 'Akses ditolak: Anda hanya dapat mengedit laporan buatan Anda sendiri.' },
+          { status: 403 }
+        );
+      }
+
+      const updatePayload: any = {};
+      if (validatedData.data.facility_id !== undefined) updatePayload.facility_id = validatedData.data.facility_id;
+      if (validatedData.data.category !== undefined) updatePayload.category = validatedData.data.category;
+      if (validatedData.data.title !== undefined) updatePayload.title = validatedData.data.title;
+      if (validatedData.data.description !== undefined) updatePayload.description = validatedData.data.description;
+      if (validatedData.data.photo_url !== undefined) updatePayload.photo_url = validatedData.data.photo_url;
+      if (validatedData.data.latitude !== undefined) updatePayload.latitude = validatedData.data.latitude;
+      if (validatedData.data.longitude !== undefined) updatePayload.longitude = validatedData.data.longitude;
+
+      const { data: updatedReport, error: updateError } = await supabaseServer
+        .from('reports')
+        .update(updatePayload)
+        .eq('id', id)
+        .select('*, facilities(id, name, building), users(id, name, email)')
+        .single();
+
+      if (updateError || !updatedReport) {
+        return NextResponse.json(
+          { success: false, data: null, message: 'Gagal memperbarui laporan: ' + updateError?.message },
+          { status: 500 }
+        );
+      }
+
+      const formattedReport = {
+        ...updatedReport,
+        facility_name: updatedReport.facilities?.name,
+        facility_building: updatedReport.facilities?.building,
+        user_name: updatedReport.users?.name,
+      };
+
       return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Laporan tidak ditemukan.',
-        },
+        { success: true, data: formattedReport, message: 'Laporan berhasil diperbarui (Supabase).' },
+        { status: 200 }
+      );
+    }
+
+    // 3. FALLBACK LOCAL STORE
+    const existing = localStore.getReportById(id);
+    if (!existing) {
+      return NextResponse.json(
+        { success: false, data: null, message: 'Laporan tidak ditemukan.' },
         { status: 404 }
       );
     }
 
-    if (existingReport.user_id !== authUser.userId) {
+    if (existing.user_id !== authUser.userId) {
       return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Akses ditolak: Anda hanya dapat mengedit laporan buatan Anda sendiri.',
-        },
+        { success: false, data: null, message: 'Akses ditolak: Anda hanya dapat mengedit laporan buatan Anda sendiri.' },
         { status: 403 }
       );
     }
 
+    const updateData: any = { ...validatedData.data };
     if (validatedData.data.facility_id) {
-      const { data: facCheck } = await supabaseServer
-        .from('facilities')
-        .select('id')
-        .eq('id', validatedData.data.facility_id)
-        .single();
-
-      if (!facCheck) {
-        return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            message: 'Fasilitas baru yang dipilih tidak valid.',
-          },
-          { status: 400 }
-        );
+      const fac = localStore.getFacilityById(validatedData.data.facility_id);
+      if (fac) {
+        updateData.facility_name = fac.name;
+        updateData.facility_building = fac.building;
       }
     }
 
-    const updatePayload: any = {};
-    if (validatedData.data.facility_id !== undefined) updatePayload.facility_id = validatedData.data.facility_id;
-    if (validatedData.data.category !== undefined) updatePayload.category = validatedData.data.category;
-    if (validatedData.data.title !== undefined) updatePayload.title = validatedData.data.title;
-    if (validatedData.data.description !== undefined) updatePayload.description = validatedData.data.description;
-    if (validatedData.data.photo_url !== undefined) updatePayload.photo_url = validatedData.data.photo_url;
-    if (validatedData.data.latitude !== undefined) updatePayload.latitude = validatedData.data.latitude;
-    if (validatedData.data.longitude !== undefined) updatePayload.longitude = validatedData.data.longitude;
-
-    const { data: updatedReport, error: updateError } = await supabaseServer
-      .from('reports')
-      .update(updatePayload)
-      .eq('id', id)
-      .select('*, facilities(id, name, building), users(id, name, email)')
-      .single();
-
-    if (updateError || !updatedReport) {
-      return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Gagal memperbarui laporan: ' + (updateError?.message || 'Unknown error'),
-        },
-        { status: 500 }
-      );
-    }
-
-    const formattedReport = {
-      ...updatedReport,
-      facility_name: updatedReport.facilities?.name,
-      facility_building: updatedReport.facilities?.building,
-      user_name: updatedReport.users?.name,
-    };
+    const updated = localStore.updateReport(id, updateData);
 
     return NextResponse.json(
-      {
-        success: true,
-        data: formattedReport,
-        message: 'Laporan berhasil diperbarui.',
-      },
+      { success: true, data: updated, message: 'Laporan berhasil diperbarui (mode lokal).' },
       { status: 200 }
     );
   } catch (error: any) {
@@ -281,102 +254,94 @@ export async function DELETE(
     const authUser = await getAuthUserFromRequest(request);
     if (!authUser) {
       return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Anda harus login untuk menghapus laporan.',
-        },
+        { success: false, data: null, message: 'Anda harus login untuk menghapus laporan.' },
         { status: 401 }
       );
     }
 
     const { id } = params;
 
-    // A. Fallback Local Data Store
-    if (!isSupabaseConfigured) {
-      const existing = localStore.getReportById(id);
+    // 1. NEON POSTGRES
+    if (isNeonConfigured) {
+      const existing = await neonGetReportById(id);
       if (!existing) {
         return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            message: 'Laporan tidak ditemukan.',
-          },
+          { success: false, data: null, message: 'Laporan tidak ditemukan.' },
           { status: 404 }
         );
       }
 
       if (existing.user_id !== authUser.userId) {
         return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            message: 'Akses ditolak: Anda hanya dapat menghapus laporan milik Anda sendiri.',
-          },
+          { success: false, data: null, message: 'Akses ditolak: Anda hanya dapat menghapus laporan milik Anda sendiri.' },
           { status: 403 }
         );
       }
 
-      localStore.deleteReport(id);
-
+      await neonDeleteReport(id);
       return NextResponse.json(
-        {
-          success: true,
-          data: null,
-          message: 'Laporan berhasil dihapus.',
-        },
+        { success: true, data: null, message: 'Laporan berhasil dihapus (Neon Postgres).' },
         { status: 200 }
       );
     }
 
-    // B. Supabase PostgreSQL
-    const { data: existingReport, error: fetchError } = await supabaseServer
-      .from('reports')
-      .select('id, user_id')
-      .eq('id', id)
-      .single();
+    // 2. SUPABASE POSTGRES
+    if (isSupabaseConfigured) {
+      const { data: existingReport, error: fetchError } = await supabaseServer
+        .from('reports')
+        .select('id, user_id')
+        .eq('id', id)
+        .single();
 
-    if (fetchError || !existingReport) {
+      if (fetchError || !existingReport) {
+        return NextResponse.json(
+          { success: false, data: null, message: 'Laporan tidak ditemukan.' },
+          { status: 404 }
+        );
+      }
+
+      if (existingReport.user_id !== authUser.userId) {
+        return NextResponse.json(
+          { success: false, data: null, message: 'Akses ditolak: Anda hanya dapat menghapus laporan milik Anda sendiri.' },
+          { status: 403 }
+        );
+      }
+
+      const { error: deleteError } = await supabaseServer.from('reports').delete().eq('id', id);
+
+      if (deleteError) {
+        return NextResponse.json(
+          { success: false, data: null, message: 'Gagal menghapus laporan: ' + deleteError.message },
+          { status: 500 }
+        );
+      }
+
       return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Laporan tidak ditemukan.',
-        },
+        { success: true, data: null, message: 'Laporan berhasil dihapus (Supabase).' },
+        { status: 200 }
+      );
+    }
+
+    // 3. FALLBACK LOCAL STORE
+    const existing = localStore.getReportById(id);
+    if (!existing) {
+      return NextResponse.json(
+        { success: false, data: null, message: 'Laporan tidak ditemukan.' },
         { status: 404 }
       );
     }
 
-    if (existingReport.user_id !== authUser.userId) {
+    if (existing.user_id !== authUser.userId) {
       return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Akses ditolak: Anda hanya dapat menghapus laporan milik Anda sendiri.',
-        },
+        { success: false, data: null, message: 'Akses ditolak: Anda hanya dapat menghapus laporan milik Anda sendiri.' },
         { status: 403 }
       );
     }
 
-    const { error: deleteError } = await supabaseServer.from('reports').delete().eq('id', id);
-
-    if (deleteError) {
-      return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          message: 'Gagal menghapus laporan: ' + deleteError.message,
-        },
-        { status: 500 }
-      );
-    }
+    localStore.deleteReport(id);
 
     return NextResponse.json(
-      {
-        success: true,
-        data: null,
-        message: 'Laporan berhasil dihapus.',
-      },
+      { success: true, data: null, message: 'Laporan berhasil dihapus (mode lokal).' },
       { status: 200 }
     );
   } catch (error: any) {
