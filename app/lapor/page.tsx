@@ -148,16 +148,18 @@ function CreateReportForm() {
       },
       (error) => {
         setGettingLocation(false);
-        let msg = 'Gagal mengambil lokasi.';
+        let msg = 'Lokasi GPS tidak terdeteksi saat offline. Menggunakan titik koordinat default kampus.';
         if (error.code === error.PERMISSION_DENIED) {
-          msg = 'Izin akses lokasi ditolak. Silakan geser pin pada peta secara manual.';
+          msg = 'Izin akses lokasi tidak aktif. Menggunakan koordinat default kampus.';
+        } else if (error.code === error.TIMEOUT) {
+          msg = 'Pencarian GPS melebihi batas waktu (offline). Menggunakan titik koordinat default kampus.';
         }
         setStatusFeedback({
-          type: 'error',
+          type: 'warning',
           message: msg,
         });
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: false, timeout: 4000, maximumAge: 60000 }
     );
   };
 
