@@ -12,55 +12,20 @@ interface AppLogoProps {
 
 export function AppLogoIcon({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const sizeMap = {
-    sm: 'w-8 h-8 rounded-[14px]',
-    md: 'w-11 h-11 rounded-[18px]',
-    lg: 'w-16 h-16 rounded-[26px]',
-  };
-
-  const iconSizeMap = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-9 h-9',
+    sm: 'w-8 h-8 rounded-[12px]',
+    md: 'w-11 h-11 rounded-[16px]',
+    lg: 'w-16 h-16 rounded-[22px]',
   };
 
   return (
     <div
-      className={`${sizeMap[size]} relative flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105`}
-      style={{
-        background: 'linear-gradient(135deg, #2563eb 0%, #1e3a8a 60%, #0f172a 100%)',
-        boxShadow:
-          '0 10px 25px -5px rgba(30, 58, 138, 0.45), inset 0 2px 2px rgba(255, 255, 255, 0.45), inset 0 -2px 4px rgba(15, 23, 42, 0.35)',
-      }}
+      className={`${sizeMap[size]} relative flex items-center justify-center shrink-0 overflow-hidden transition-transform duration-300 group-hover:scale-105`}
     >
-      {/* 3D Soft Light Reflection Layer */}
-      <div className="absolute inset-x-1.5 top-1 h-[35%] bg-gradient-to-b from-white/35 to-transparent rounded-t-[14px] pointer-events-none" />
-
-      {/* Modern Soft 3D Geometric Campus Report Emblem */}
-      <svg
-        className={`${iconSizeMap[size]} text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)] relative z-10`}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {/* Isometric Cube / Building Base */}
-        <path
-          d="M12 2L3 7L12 12L21 7L12 2Z"
-          fill="white"
-          fillOpacity="0.9"
-        />
-        <path
-          d="M3 7V17L12 22V12L3 7Z"
-          fill="white"
-          fillOpacity="0.75"
-        />
-        <path
-          d="M21 7V17L12 22V12L21 7Z"
-          fill="white"
-          fillOpacity="0.6"
-        />
-        {/* Pin Accent in Soft Warm Coral */}
-        <circle cx="12" cy="7" r="2.2" fill="#ff9e7d" />
-      </svg>
+      <img
+        src="/LaporKampus_Logo.png"
+        alt="LaporKampus Logo"
+        className="w-full h-full object-contain"
+      />
     </div>
   );
 }
