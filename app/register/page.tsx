@@ -123,7 +123,7 @@ function RegisterForm() {
           {/* Password */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">
-              Kata Sandi (Minimal 6 karakter)
+              Kata Sandi (Minimal 8 karakter)
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">

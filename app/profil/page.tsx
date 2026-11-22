@@ -101,7 +101,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Section Instalasi PWA */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
+        {/* <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Download className="w-4 h-4 text-blue-600" />
@@ -136,7 +136,7 @@ export default function ProfilePage() {
               </span>
             </button>
           )}
-        </div>
+        </div> */}
 
         {/* Section About Aplikasi */}
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-3">
