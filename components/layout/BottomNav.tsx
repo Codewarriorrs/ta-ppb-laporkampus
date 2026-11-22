@@ -1,19 +1,33 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Building2, Plus, FileText, User } from 'lucide-react';
+import { Home, Building2, Plus, FileText, User, LayoutDashboard } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const [userRole, setUserRole] = useState<string>('mahasiswa');
+
+  useEffect(() => {
+    if (pathname === '/login' || pathname === '/register') return;
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data?.role) {
+          setUserRole(res.data.role);
+        }
+      })
+      .catch(() => {});
+  }, [pathname]);
 
   // Jangan tampilkan di halaman login dan register
   if (pathname === '/login' || pathname === '/register') {
     return null;
   }
 
-  const isHomeActive = pathname === '/';
+  const isBirokrasi = userRole === 'birokrasi';
+  const isHomeActive = isBirokrasi ? pathname.startsWith('/birokrasi') : pathname === '/';
   const isFacilitiesActive = pathname.startsWith('/fasilitas');
   const isReportActive = pathname === '/lapor';
   const isMyReportsActive = pathname === '/laporan-saya';
@@ -22,17 +36,21 @@ export default function BottomNav() {
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex justify-center bg-transparent pointer-events-none">
       <div className="w-full max-w-[480px] bg-white/95 backdrop-blur-md border-t border-neutral-200/80 shadow-card-3d pointer-events-auto flex items-center justify-around px-2 py-2 pb-safe rounded-t-[28px]">
-        {/* Tab 1: Beranda */}
+        {/* Tab 1: Beranda / Dashboard Birokrasi */}
         <Link
-          href="/"
+          href={isBirokrasi ? '/birokrasi' : '/'}
           className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
             isHomeActive
               ? 'text-primary font-bold scale-105'
               : 'text-neutral-400 hover:text-neutral-700'
           }`}
         >
-          <Home className={`w-5 h-5 ${isHomeActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
-          <span className="text-[11px] mt-1">Beranda</span>
+          {isBirokrasi ? (
+            <LayoutDashboard className={`w-5 h-5 ${isHomeActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
+          ) : (
+            <Home className={`w-5 h-5 ${isHomeActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
+          )}
+          <span className="text-[11px] mt-1">{isBirokrasi ? 'Dashboard' : 'Beranda'}</span>
         </Link>
 
         {/* Tab 2: Fasilitas */}
@@ -48,29 +66,33 @@ export default function BottomNav() {
           <span className="text-[11px] mt-1">Fasilitas</span>
         </Link>
 
-        {/* Tab 3: Tombol Lapor (Floating Soft 3D Center Button) */}
-        <div className="flex-1 flex justify-center -mt-6">
-          <Link
-            href="/lapor"
-            aria-label="Buat Laporan Baru"
-            className="w-14 h-14 rounded-[22px] bg-primary text-white flex items-center justify-center shadow-btn-3d active:scale-95 transition-all hover:bg-primary-hover"
-          >
-            <Plus className="w-7 h-7 stroke-[2.8]" />
-          </Link>
-        </div>
+        {/* Tab 3: Tombol Lapor (Hanya untuk mahasiswa) */}
+        {!isBirokrasi ? (
+          <div className="flex-1 flex justify-center -mt-6">
+            <Link
+              href="/lapor"
+              aria-label="Buat Laporan Baru"
+              className="w-14 h-14 rounded-[22px] bg-primary text-white flex items-center justify-center active:scale-95 transition-all hover:bg-primary-hover"
+            >
+              <Plus className="w-7 h-7 stroke-[2.8]" />
+            </Link>
+          </div>
+        ) : null}
 
-        {/* Tab 4: Laporan Saya */}
-        <Link
-          href="/laporan-saya"
-          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
-            isMyReportsActive
-              ? 'text-primary font-bold scale-105'
-              : 'text-neutral-400 hover:text-neutral-700'
-          }`}
-        >
-          <FileText className={`w-5 h-5 ${isMyReportsActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
-          <span className="text-[11px] mt-1">Laporan Saya</span>
-        </Link>
+        {/* Tab 4: Laporan Saya (Hanya untuk mahasiswa) */}
+        {!isBirokrasi ? (
+          <Link
+            href="/laporan-saya"
+            className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
+              isMyReportsActive
+                ? 'text-primary font-bold scale-105'
+                : 'text-neutral-400 hover:text-neutral-700'
+            }`}
+          >
+            <FileText className={`w-5 h-5 ${isMyReportsActive ? 'stroke-[2.5px]' : 'stroke-[1.8px]'}`} />
+            <span className="text-[11px] mt-1">Laporan Saya</span>
+          </Link>
+        ) : null}
 
         {/* Tab 5: Profil */}
         <Link

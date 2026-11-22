@@ -186,8 +186,8 @@ function CreateReportForm() {
     const currentFacility = facilities.find((f) => f.id === facilityId);
 
     // ── PENANGANAN OFFLINE ──
-    // Jika tidak ada koneksi internet, simpan langsung ke antrean offline lokal
-    if (!navigator.onLine) {
+    // Jika perangkat offline (atau jika navigator.onLine bernilai false)
+    if (typeof window !== 'undefined' && !navigator.onLine) {
       saveOfflineReport({
         facility_id: facilityId,
         facility_name: currentFacility?.name || 'Fasilitas Kampus',
@@ -204,33 +204,46 @@ function CreateReportForm() {
         message: 'Mode Offline: Laporan berhasil disimpan di perangkat Anda! Laporan akan otomatis disinkronkan saat terhubung kembali ke internet.',
       });
 
+      setSubmitting(false);
       setTimeout(() => {
         router.push('/laporan-saya');
       }, 1500);
       return;
     }
 
-    // ── PENANGANAN ONLINE ──
+    // ── PENANGANAN ONLINE DENGAN TIMEOUT ──
     try {
       let uploadedPhotoUrl: string | null = null;
 
       if (selectedFile) {
-        const formData = new FormData();
-        formData.append('file', selectedFile);
+        try {
+          const formData = new FormData();
+          formData.append('file', selectedFile);
 
-        const uploadRes = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
+          const uploadController = new AbortController();
+          const uploadTimer = setTimeout(() => uploadController.abort(), 7000);
 
-        const uploadData = await uploadRes.json();
-        if (uploadRes.ok && uploadData.success) {
-          uploadedPhotoUrl = uploadData.data.url;
-        } else {
-          // Jika upload gagal, gunakan base64
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            signal: uploadController.signal,
+          });
+          clearTimeout(uploadTimer);
+
+          const uploadData = await uploadRes.json();
+          if (uploadRes.ok && uploadData.success) {
+            uploadedPhotoUrl = uploadData.data.url;
+          } else {
+            uploadedPhotoUrl = base64Photo;
+          }
+        } catch {
+          // Jika upload gagal/timeout, fallback ke base64 foto
           uploadedPhotoUrl = base64Photo;
         }
       }
+
+      const reportController = new AbortController();
+      const reportTimer = setTimeout(() => reportController.abort(), 7000);
 
       const reportRes = await fetch('/api/reports', {
         method: 'POST',
@@ -244,7 +257,9 @@ function CreateReportForm() {
           latitude,
           longitude,
         }),
+        signal: reportController.signal,
       });
+      clearTimeout(reportTimer);
 
       const reportData = await reportRes.json();
 
@@ -262,7 +277,7 @@ function CreateReportForm() {
         router.refresh();
       }, 1000);
     } catch (err: any) {
-      // Jika terjadi Network Error saat mencoba fetch, simpan ke offline outbox
+      // Jika terjadi Network Error, AbortError, atau Server Error saat offline / koneksi putus
       saveOfflineReport({
         facility_id: facilityId,
         facility_name: currentFacility?.name || 'Fasilitas Kampus',
@@ -276,7 +291,7 @@ function CreateReportForm() {
 
       setStatusFeedback({
         type: 'warning',
-        message: 'Gagal terhubung ke server. Laporan telah disimpan di memori perangkat secara offline dan akan disinkronkan saat online.',
+        message: 'Koneksi terputus. Laporan telah berhasil disimpan di memori perangkat (Offline) dan akan disinkronkan otomatis saat online.',
       });
 
       setTimeout(() => {

@@ -170,13 +170,10 @@ export default function BirokrasiDashboardPage() {
       <div className="bg-primary text-white px-5 sm:px-8 pt-8 pb-10 rounded-b-3xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="bg-white/20 text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full backdrop-blur-sm border border-white/10">
-                Pusat Kendali Fasilitas
-              </span>
-              <span className="bg-accent text-neutral-900 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
-                Birokrasi Kampus
-              </span>
+            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-sky-200">
+              <span>Pusat Kendali Fasilitas</span>
+              <span>•</span>
+              <span className="text-white">Birokrasi Kampus</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               {getGreeting()}, {currentUser?.name || 'Staf Birokrasi'}

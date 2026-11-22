@@ -43,7 +43,14 @@ function LoginForm() {
         return;
       }
 
-      router.push(redirect);
+      const userRole = data.data?.user?.role;
+      if (redirect && redirect !== '/') {
+        router.push(redirect);
+      } else if (userRole === 'birokrasi') {
+        router.push('/birokrasi');
+      } else {
+        router.push('/');
+      }
       router.refresh();
     } catch {
       setErrorMessage('Terjadi gangguan jaringan ke server. Coba beberapa saat lagi.');
