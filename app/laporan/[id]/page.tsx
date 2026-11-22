@@ -278,7 +278,7 @@ export default function ReportDetailPage() {
                     <button
                       type="submit"
                       disabled={submittingFeedback}
-                      className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold shadow-md shadow-primary/20 flex items-center gap-1.5 transition-all"
+                      className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
                     >
                       <Send className="w-3.5 h-3.5" />
                       <span>{submittingFeedback ? 'Menyimpan...' : 'Perbarui Tanggapan'}</span>

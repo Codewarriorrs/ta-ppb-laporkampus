@@ -74,17 +74,20 @@ export function removeOfflineReport(tempId: string): void {
   }
 }
 
-export async function syncOfflineReports(): Promise<{ synced: number; failed: number }> {
+export async function syncOfflineReports(): Promise<{ synced: number; failed: number; message?: string }> {
   if (typeof window === 'undefined') return { synced: 0, failed: 0 };
-  if (!navigator.onLine) return { synced: 0, failed: 0 };
+  if (!navigator.onLine) {
+    return { synced: 0, failed: 0, message: 'Perangkat sedang offline.' };
+  }
 
   const list = getOfflineReports();
-  if (list.length === 0) return { synced: 0, failed: 0 };
+  if (list.length === 0) return { synced: 0, failed: 0, message: 'Tidak ada laporan offline.' };
 
   let synced = 0;
   let failed = 0;
+  let lastErrorMessage = '';
 
-  for (const item of list) {
+  for (const item of [...list]) {
     try {
       const response = await fetch('/api/reports', {
         method: 'POST',
@@ -107,16 +110,18 @@ export async function syncOfflineReports(): Promise<{ synced: number; failed: nu
         removeOfflineReport(item.tempId);
         synced++;
       } else {
+        lastErrorMessage = result.message || 'Gagal menyimpan laporan ke server.';
         failed++;
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Sinkronisasi laporan offline gagal:', err);
+      lastErrorMessage = err?.message || 'Gagal terhubung ke server.';
       failed++;
     }
   }
 
   window.dispatchEvent(new Event('offline-reports-changed'));
-  return { synced, failed };
+  return { synced, failed, message: lastErrorMessage };
 }
 
 /**

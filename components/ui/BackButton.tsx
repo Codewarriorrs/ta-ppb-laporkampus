@@ -54,7 +54,7 @@ export function BackButton({
 
   // Color variants matching Toyota Blue & Neutral palette from lms-nkgts
   const variantClasses = {
-    primary: "bg-primary text-white hover:bg-primary-dark shadow-md shadow-primary/20 border border-primary/20",
+    primary: "bg-primary text-white hover:bg-primary-dark border border-primary/20",
     outline: "bg-white text-primary border border-primary/30 hover:bg-primary/5 hover:border-primary",
     secondary: "bg-neutral-100 text-neutral-900 hover:bg-neutral-200 border border-neutral-200",
     ghost: "bg-transparent text-primary hover:bg-primary/10",

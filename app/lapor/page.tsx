@@ -498,7 +498,7 @@ function CreateReportForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-6 rounded-2xl shadow-md shadow-primary/20 border border-primary/20 transition-all active:scale-[0.99] disabled:opacity-60 text-sm"
+            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-6 rounded-2xl border border-primary/20 transition-all active:scale-[0.99] disabled:opacity-60 text-sm"
           >
             {submitting ? (
               <>

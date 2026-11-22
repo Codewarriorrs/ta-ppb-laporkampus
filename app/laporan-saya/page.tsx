@@ -69,7 +69,20 @@ export default function MyReportsPage() {
       setOfflineReports(getOfflineReports().map(offlineItemToReport));
     };
     window.addEventListener('offline-reports-changed', handleQueueChange);
-    return () => window.removeEventListener('offline-reports-changed', handleQueueChange);
+
+    const handleOnline = async () => {
+      console.log('Koneksi internet kembali! Memulai sinkronisasi otomatis...');
+      const res = await syncOfflineReports();
+      if (res.synced > 0) {
+        fetchMyReports();
+      }
+    };
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('offline-reports-changed', handleQueueChange);
+      window.removeEventListener('online', handleOnline);
+    };
   }, []);
 
   const handleManualSync = async () => {
@@ -78,8 +91,15 @@ export default function MyReportsPage() {
       return;
     }
     setSyncing(true);
-    await syncOfflineReports();
+    const res = await syncOfflineReports();
     setSyncing(false);
+
+    if (res.synced > 0) {
+      alert(`Berhasil mengunggah ${res.synced} laporan offline ke server!`);
+    } else if (res.failed > 0) {
+      alert(`Gagal mengunggah laporan: ${res.message || 'Periksa koneksi atau sesi login Anda.'}`);
+    }
+
     fetchMyReports();
   };
 
@@ -125,7 +145,7 @@ export default function MyReportsPage() {
         rightAction={
           <Link
             href="/lapor"
-            className="px-3.5 py-1.5 bg-primary hover:bg-primary-dark text-white rounded-xl flex items-center gap-1.5 text-xs font-bold shadow-md shadow-primary/20 transition-all"
+            className="px-3.5 py-1.5 bg-primary hover:bg-primary-dark text-white rounded-xl flex items-center gap-1.5 text-xs font-bold transition-all"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Lapor Baru</span>

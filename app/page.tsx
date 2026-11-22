@@ -65,7 +65,21 @@ export default function HomePage() {
       setOfflineReports(getOfflineReports().map(offlineItemToReport));
     };
     window.addEventListener('offline-reports-changed', handleQueueChange);
-    return () => window.removeEventListener('offline-reports-changed', handleQueueChange);
+
+    const handleOnline = async () => {
+      console.log('Koneksi internet kembali! Memulai sinkronisasi otomatis...');
+      const { syncOfflineReports } = await import('@/lib/offlineQueue');
+      const res = await syncOfflineReports();
+      if (res.synced > 0) {
+        fetchReports(searchQuery, selectedCategory);
+      }
+    };
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('offline-reports-changed', handleQueueChange);
+      window.removeEventListener('online', handleOnline);
+    };
   }, [selectedCategory]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {

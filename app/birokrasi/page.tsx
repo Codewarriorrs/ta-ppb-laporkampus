@@ -167,7 +167,7 @@ export default function BirokrasiDashboardPage() {
   return (
     <div className="flex-1 flex flex-col pb-8">
       {/* ── HERO BANNER BERGAYA LMS-NKGTS ── */}
-      <div className="bg-primary text-white px-5 sm:px-8 pt-8 pb-10 rounded-b-3xl shadow-md shadow-primary/20">
+      <div className="bg-primary text-white px-5 sm:px-8 pt-8 pb-10 rounded-b-3xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -395,7 +395,7 @@ export default function BirokrasiDashboardPage() {
                   <button
                     type="button"
                     onClick={() => handleOpenFeedback(report)}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold shadow-md shadow-primary/20 border border-primary/20 transition-all active:scale-95"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold border border-primary/20 transition-all active:scale-95"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
                     <span>{report.feedback ? 'Edit Tanggapan' : 'Tanggapi Laporan'}</span>
@@ -502,7 +502,7 @@ export default function BirokrasiDashboardPage() {
                 <button
                   type="submit"
                   disabled={submittingFeedback}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold shadow-md shadow-primary/20 transition-all active:scale-95 disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-bold transition-all active:scale-95 disabled:opacity-60"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{submittingFeedback ? 'Menyimpan...' : 'Kirim Tanggapan'}</span>
