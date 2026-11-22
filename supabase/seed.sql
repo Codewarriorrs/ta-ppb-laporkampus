@@ -87,7 +87,7 @@ ON CONFLICT (id) DO NOTHING;
 -- 3. Seed 5 Contoh Laporan Kerusakan
 INSERT INTO reports (id, user_id, facility_id, category, title, description, photo_url, latitude, longitude, created_at) VALUES
 (
-    'r0000000-0000-0000-0000-000000000001',
+    'c0000000-0000-0000-0000-000000000001',
     'a0000000-0000-0000-0000-000000000001',
     'f0000000-0000-0000-0000-000000000001',
     'AC',
@@ -99,7 +99,7 @@ INSERT INTO reports (id, user_id, facility_id, category, title, description, pho
     NOW() - INTERVAL '2 hours'
 ),
 (
-    'r0000000-0000-0000-0000-000000000002',
+    'c0000000-0000-0000-0000-000000000002',
     'a0000000-0000-0000-0000-000000000002',
     'f0000000-0000-0000-0000-000000000003',
     'Proyektor',
@@ -111,7 +111,7 @@ INSERT INTO reports (id, user_id, facility_id, category, title, description, pho
     NOW() - INTERVAL '5 hours'
 ),
 (
-    'r0000000-0000-0000-0000-000000000003',
+    'c0000000-0000-0000-0000-000000000003',
     'a0000000-0000-0000-0000-000000000001',
     'f0000000-0000-0000-0000-000000000004',
     'Toilet',
@@ -123,7 +123,7 @@ INSERT INTO reports (id, user_id, facility_id, category, title, description, pho
     NOW() - INTERVAL '1 day'
 ),
 (
-    'r0000000-0000-0000-0000-000000000004',
+    'c0000000-0000-0000-0000-000000000004',
     'a0000000-0000-0000-0000-000000000002',
     'f0000000-0000-0000-0000-000000000002',
     'Jaringan/WiFi',
@@ -135,7 +135,7 @@ INSERT INTO reports (id, user_id, facility_id, category, title, description, pho
     NOW() - INTERVAL '2 days'
 ),
 (
-    'r0000000-0000-0000-0000-000000000005',
+    'c0000000-0000-0000-0000-000000000005',
     'a0000000-0000-0000-0000-000000000001',
     'f0000000-0000-0000-0000-000000000008',
     'Lampu',
