@@ -68,9 +68,13 @@ function RegisterForm() {
       // Jika pendaftaran memerlukan verifikasi OTP (Brevo)
       if (data.requiresVerification) {
         setStep('verify');
-        setSuccessMessage('Kode OTP telah dikirimkan ke email kampus Anda!');
+        if (data.emailSent) {
+          setSuccessMessage(data.message || 'Pendaftaran berhasil. Silakan verifikasi email Anda.');
+        } else {
+          setErrorMessage(data.message || 'Email verifikasi belum berhasil dikirim.');
+        }
         if (data.devOtp) setDevOtpHint(data.devOtp);
-        setResendCooldown(60);
+        setResendCooldown(data.emailSent ? 60 : 0);
         setLoading(false);
         return;
       }
@@ -129,10 +133,11 @@ function RegisterForm() {
       });
       const data = await res.json();
       if (data.success) {
-        setSuccessMessage('Kode OTP baru telah dikirim ulang ke email Anda.');
+        setSuccessMessage(data.message || 'Kode OTP baru berhasil dikirim.');
         if (data.devOtp) setDevOtpHint(data.devOtp);
         setResendCooldown(60);
       } else {
+        if (data.devOtp) setDevOtpHint(data.devOtp);
         setErrorMessage(data.message || 'Gagal mengirim ulang OTP.');
       }
     } catch {

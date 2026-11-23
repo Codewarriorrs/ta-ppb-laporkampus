@@ -4,6 +4,7 @@ import { supabaseServer, isSupabaseConfigured } from '@/lib/supabase';
 import { isNeonConfigured, neonFindUserByEmail } from '@/lib/neon';
 import { comparePassword, signToken, AUTH_COOKIE_NAME } from '@/lib/auth';
 import { localStore } from '@/lib/localStore';
+import type { UserRole } from '@/types';
 
 const loginSchema = z.object({
   email: z.string().email('Format email tidak valid'),
@@ -29,7 +30,14 @@ export async function POST(request: Request) {
 
     const { email, password } = validatedData.data;
 
-    let user: { id: string; name: string; email: string; password_hash: string; role?: any } | null = null;
+    let user: {
+      id: string;
+      name: string;
+      email: string;
+      password_hash: string;
+      role?: UserRole | null;
+      email_verified?: boolean | null;
+    } | null = null;
 
     // 1. NEON POSTGRES
     if (isNeonConfigured) {
@@ -39,7 +47,7 @@ export async function POST(request: Request) {
       // 2. SUPABASE POSTGRES
       const { data: dbUser } = await supabaseServer
         .from('users')
-        .select('id, name, email, password_hash, role')
+        .select('id, name, email, password_hash, role, email_verified')
         .eq('email', email.toLowerCase())
         .single();
       if (dbUser) user = dbUser;
@@ -73,7 +81,7 @@ export async function POST(request: Request) {
     }
 
     // Cek apakah email sudah diverifikasi (jika ada flag email_verified)
-    if ((user as any).email_verified === false) {
+    if (user.email_verified === false) {
       return NextResponse.json(
         {
           success: false,

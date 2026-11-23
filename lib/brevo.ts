@@ -18,14 +18,13 @@ export async function sendOtpVerificationEmail({
   const senderName = process.env.BREVO_SENDER_NAME || 'LaporKampus';
 
   // Jika BREVO_API_KEY belum dikonfigurasi, berikan peringatan di log console namun jangan crash
-  if (!apiKey || apiKey === 'your_brevo_api_key_here') {
+  if (!apiKey || apiKey.includes('your_brevo_api_key_here')) {
     console.warn(
-      `[BREVO NOT CONFIGURED] Email verifikasi untuk ${toEmail} dengan kode OTP: ${otp}. Masukkan BREVO_API_KEY di .env.local untuk pengiriman nyata.`
+      `[BREVO NOT CONFIGURED] Email verifikasi untuk ${toEmail} tidak dikirim. Masukkan BREVO_API_KEY di environment untuk pengiriman nyata.`
     );
     return {
-      success: true,
-      messageId: 'dev-mode-' + Date.now(),
-      error: 'Brevo API key not configured (Development mode OTP: ' + otp + ')',
+      success: false,
+      error: 'Brevo API key not configured',
     };
   }
 
@@ -95,7 +94,7 @@ export async function sendOtpVerificationEmail({
       }),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
     if (!res.ok) {
       console.error('Gagal mengirim email via Brevo:', data);
       return { success: false, error: data?.message || 'Gagal mengirim email via Brevo' };

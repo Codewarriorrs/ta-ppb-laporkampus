@@ -139,6 +139,12 @@ Semua endpoint mengembalikan respons dengan format standar JSON:
    - Salin **Project URL** (`SUPABASE_URL`).
    - Salin **service_role secret key** (`SUPABASE_SERVICE_ROLE_KEY`).
 
+## ✉️ Konfigurasi Verifikasi Email
+
+Kode OTP dikirim melalui Brevo. Isi `BREVO_API_KEY` dengan API key aktif dan `BREVO_SENDER_EMAIL` dengan alamat pengirim yang sudah diverifikasi di Brevo, baik pada `.env.local` maupun Environment Variables hosting. Setelah mengubah environment variables, restart atau deploy ulang aplikasi. Tanpa konfigurasi valid, akun tetap dibuat sebagai belum terverifikasi dan aplikasi akan menampilkan bahwa email gagal dikirim; kode OTP hanya ditampilkan dalam mode development untuk pengujian.
+
+Saat menggunakan Neon atau Supabase, jalankan skema database terbaru (`neon/schema.sql` atau `supabase/schema.sql`) agar kolom `email_verified`, `verification_otp`, dan `otp_expires_at` tersedia.
+
 ---
 
 ## 💻 Panduan Menjalankan di Komputer Lokal
@@ -158,6 +164,8 @@ Semua endpoint mengembalikan respons dengan format standar JSON:
    SUPABASE_URL=https://your-project-id.supabase.co
    SUPABASE_SERVICE_ROLE_KEY=eyJh...
    JWT_SECRET=super-secret-jwt-key-lapor-kampus-min-32-chars-long-2026
+   BREVO_API_KEY=xkeysib-your_real_api_key
+   BREVO_SENDER_EMAIL=alamat-pengirim-terverifikasi@kampus.ac.id
    ```
 
 3. **Install dependensi (jika belum):**
@@ -195,4 +203,6 @@ Semua endpoint mengembalikan respons dengan format standar JSON:
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `JWT_SECRET`
+   - `BREVO_API_KEY`
+   - `BREVO_SENDER_EMAIL`
 5. Klik **Deploy**. Vercel akan otomatis melakukan proses build Next.js dan aplikasi siap diakses secara publik melalui protokol HTTPS (wajib untuk PWA & Geolocation API).

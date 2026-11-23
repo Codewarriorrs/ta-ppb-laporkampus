@@ -8,6 +8,9 @@ export interface StoreData {
     email: string;
     password_hash: string;
     role?: 'mahasiswa' | 'birokrasi';
+    email_verified?: boolean;
+    verification_otp?: string | null;
+    otp_expires_at?: string | null;
     created_at: string;
   }>;
   facilities: Facility[];
@@ -107,6 +110,7 @@ const INITIAL_USERS = [
     email: 'zaidan@kampus.ac.id',
     password_hash: DEFAULT_PASSWORD_HASH,
     role: 'mahasiswa' as const,
+    email_verified: true,
     created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
   },
   {
@@ -115,6 +119,7 @@ const INITIAL_USERS = [
     email: 'budi@kampus.ac.id',
     password_hash: DEFAULT_PASSWORD_HASH,
     role: 'birokrasi' as const,
+    email_verified: true,
     created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
   },
 ];
@@ -221,6 +226,29 @@ class LocalDataStore {
   }
   addUser(user: StoreData['users'][0]) {
     this.data.users.push(user);
+    return user;
+  }
+  setUserOtp(email: string, otp: string) {
+    const user = this.findUserByEmail(email);
+    if (!user || user.email_verified) return false;
+    user.verification_otp = otp;
+    user.otp_expires_at = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    return true;
+  }
+  verifyUserOtp(email: string, otp: string) {
+    const user = this.findUserByEmail(email);
+    if (
+      !user ||
+      user.email_verified ||
+      user.verification_otp !== otp ||
+      !user.otp_expires_at ||
+      new Date(user.otp_expires_at).getTime() <= Date.now()
+    ) {
+      return null;
+    }
+    user.email_verified = true;
+    user.verification_otp = null;
+    user.otp_expires_at = null;
     return user;
   }
 

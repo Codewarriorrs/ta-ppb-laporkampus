@@ -14,6 +14,7 @@ const PUBLIC_PATHS = [
   '/offline',
   '/api/auth/login',
   '/api/auth/register',
+  '/api/auth/verify-otp',
   '/manifest.webmanifest',
   '/sw.js',
   '/favicon.ico',
@@ -34,11 +35,13 @@ export async function middleware(request: NextRequest) {
   // Ambil token dari cookie
   const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   let isAuthenticated = false;
+  let userRole: string | undefined;
 
   if (token) {
     try {
-      await jwtVerify(token, JWT_SECRET);
+      const { payload } = await jwtVerify(token, JWT_SECRET);
       isAuthenticated = true;
+      userRole = typeof payload.role === 'string' ? payload.role : undefined;
     } catch {
       isAuthenticated = false;
     }
@@ -69,6 +72,12 @@ export async function middleware(request: NextRequest) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (pathname === '/birokrasi' || pathname.startsWith('/birokrasi/')) {
+    if (userRole !== 'birokrasi') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
   }
 
   return NextResponse.next();

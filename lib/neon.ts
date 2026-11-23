@@ -87,7 +87,9 @@ export async function neonVerifyUserOtp(email: string, otp: string): Promise<Neo
   const rows = await sql`
     SELECT id, name, email, password_hash, COALESCE(role, 'mahasiswa') AS role, email_verified, created_at
     FROM users 
-    WHERE LOWER(email) = LOWER(${email}) AND verification_otp = ${otp}
+    WHERE LOWER(email) = LOWER(${email})
+      AND verification_otp = ${otp}
+      AND otp_expires_at > NOW()
     LIMIT 1
   `;
   if (rows.length === 0) return null;
