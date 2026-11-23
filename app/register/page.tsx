@@ -231,7 +231,7 @@ function RegisterForm() {
                   {/* Password */}
                   <div>
                     <label className="block text-xs font-bold text-neutral-700 mb-1.5 font-sans">
-                      Kata Sandi (Min. 6 Karakter)
+                      Kata Sandi (Min. 8 Karakter)
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
