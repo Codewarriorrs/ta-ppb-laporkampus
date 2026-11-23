@@ -19,14 +19,15 @@ export async function sendOtpVerificationEmail({
 
   // Jika BREVO_API_KEY belum dikonfigurasi, berikan peringatan di log console namun jangan crash
   if (!apiKey || apiKey.includes('your_brevo_api_key_here')) {
-    console.warn(
-      `[BREVO NOT CONFIGURED] Email verifikasi untuk ${toEmail} tidak dikirim. Masukkan BREVO_API_KEY di environment untuk pengiriman nyata.`
-    );
+    const msg = `[BREVO NOT CONFIGURED] BREVO_API_KEY belum diisi di environment variables Vercel/Server.`;
+    console.error(msg);
     return {
       success: false,
-      error: 'Brevo API key not configured',
+      error: msg,
     };
   }
+
+  console.log(`[BREVO SENDING] Mengirim email OTP ke ${toEmail} menggunakan sender ${senderEmail}...`);
 
   const emailHtml = `
     <!DOCTYPE html>
@@ -96,13 +97,14 @@ export async function sendOtpVerificationEmail({
 
     const data = await res.json().catch(() => null);
     if (!res.ok) {
-      console.error('Gagal mengirim email via Brevo:', data);
-      return { success: false, error: data?.message || 'Gagal mengirim email via Brevo' };
+      console.error('[BREVO ERROR HTTP ' + res.status + ']:', JSON.stringify(data));
+      return { success: false, error: data?.message || `Brevo error HTTP ${res.status}` };
     }
 
-    return { success: true, messageId: data.messageId };
+    console.log('[BREVO SUCCESS] Email terkirim ke ' + toEmail + ', messageId:', data?.messageId);
+    return { success: true, messageId: data?.messageId };
   } catch (err: any) {
-    console.error('Error koneksi Brevo API:', err);
-    return { success: false, error: err.message };
+    console.error('[BREVO CONNECTION ERROR]:', err);
+    return { success: false, error: err.message || 'Koneksi ke Brevo gagal' };
   }
 }
