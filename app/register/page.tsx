@@ -43,8 +43,8 @@ function RegisterForm() {
     setErrorMessage('');
     setSuccessMessage('');
 
-    if (password.length < 6) {
-      setErrorMessage('Kata sandi minimal harus 6 karakter.');
+    if (password.length < 8) {
+      setErrorMessage('Kata sandi minimal harus 8 karakter.');
       return;
     }
 

@@ -21,6 +21,11 @@ function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password.length < 8) {
+      setErrorMessage('Kata sandi minimal harus 8 karakter.');
+      return;
+    }
+
     setErrorMessage('');
     setLoading(true);
 
