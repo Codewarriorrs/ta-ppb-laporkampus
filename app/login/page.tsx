@@ -184,62 +184,73 @@ function LoginForm() {
           </div>
         </div>
 
-        {/* Kolom Kanan: Branded Showcase Panel (Desktop Saja) */}
-        <div
-          className="hidden lg:flex lg:col-span-6 p-12 flex-col justify-between relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(145deg, #1e3a8a 0%, #172554 60%, #0f172a 100%)',
-          }}
-        >
-          {/* Soft 3D Glow Orbs */}
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-sky-400/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+        {/* Kolom Kanan: Panel Profil Teknik Komputer Undip (Clean Editorial & Technical Style) */}
+        <div className="hidden lg:flex lg:col-span-6 p-10 xl:p-12 flex-col justify-between bg-primary text-white relative">
+          {/* Header Info Departemen */}
+          <div>
+            <div className="flex items-center justify-between pb-4 border-b border-white/15">
+              <div>
+                <p className="text-[11px] font-bold text-sky-300 tracking-wider uppercase font-sans">
+                  Departemen Teknik Komputer
+                </p>
+                <p className="text-xs text-white/70 font-sans">
+                  Fakultas Teknik Universitas Diponegoro
+                </p>
+              </div>
+              <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-white/10 text-white font-mono">
+                Kampus Tembalang
+              </span>
+            </div>
 
-          {/* Top Label */}
-          <div className="relative z-10">
-            <span className="text-xs font-bold text-sky-300 tracking-wider uppercase">
-              Sistem Terpadu Kampus
-            </span>
+            <div className="mt-8 space-y-4">
+              <h2 className="text-2xl xl:text-3xl font-extrabold text-white leading-snug font-display">
+                Layanan Pelaporan Fasilitas &amp; Sarana Prasarana Terpadu
+              </h2>
+              <p className="text-xs xl:text-sm text-white/80 leading-relaxed font-sans">
+                Platform terpusat untuk mahasiswa dan civitas akademika dalam menyampaikan kendala perangkat lab, ruang kuliah, dan jaringan di lingkungan Departemen Teknik Komputer Undip.
+              </p>
+            </div>
           </div>
 
-          {/* Middle: Headline & Testimonial */}
-          <div className="relative z-10 space-y-8 my-auto">
-            <h2 className="text-3xl font-extrabold text-white leading-tight font-display">
-              Fasilitas Kampus Nyaman, Kuliah Jauh Lebih Tenang.
-            </h2>
-
-            {/* Testimonial Quote Card */}
-            <div className="p-6 rounded-[24px] bg-white/10 backdrop-blur-md border border-white/15 space-y-4">
-              <p className="text-xs text-white/90 leading-relaxed font-sans italic">
-                “LaporKampus mempercepat respon perbaikan fasilitas mulai dari ruang kelas, lab komputer, hingga sanitasi kampus secara terdata dan transparan.”
-              </p>
-
-              <div className="flex items-center gap-3 pt-2 border-t border-white/10">
-                <div className="w-9 h-9 rounded-full bg-accent text-neutral-900 font-black text-xs flex items-center justify-center shrink-0">
-                  BS
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white leading-tight font-sans">
-                    Budi Santoso, S.T.
-                  </h4>
-                  <p className="text-[10px] text-white/60 font-medium">
-                    Kepala Bagian Sarana & Prasarana
-                  </p>
-                </div>
+          {/* Cakupan Laboratorium & Fasilitas Utama */}
+          <div className="space-y-4 my-8">
+            <p className="text-[11px] uppercase font-bold text-white/60 tracking-wider font-sans">
+              Fasilitas Laboratorium &amp; Riset Utama:
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
+                <p className="text-xs font-bold text-white">Lab. Sistem Tertanam</p>
+                <p className="text-[10px] text-white/70 mt-0.5">Embedded System &amp; Robotika</p>
+              </div>
+              <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
+                <p className="text-xs font-bold text-white">Lab. Jaringan Komputer</p>
+                <p className="text-[10px] text-white/70 mt-0.5">Network &amp; Cyber Security</p>
+              </div>
+              <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
+                <p className="text-xs font-bold text-white">Lab. Rekayasa Perangkat Lunak</p>
+                <p className="text-[10px] text-white/70 mt-0.5">Software Eng. &amp; Mobile</p>
+              </div>
+              <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
+                <p className="text-xs font-bold text-white">Lab. Multimedia &amp; Sinyal</p>
+                <p className="text-[10px] text-white/70 mt-0.5">Pengolahan Citra &amp; Multimedia</p>
               </div>
             </div>
           </div>
 
-          {/* Bottom Campus Units */}
-          <div className="relative z-10 pt-6 border-t border-white/10">
-            <p className="text-[10px] uppercase font-bold text-white/50 tracking-wider mb-2 font-sans">
-              Mencakup Seluruh Fasilitas Kampus:
-            </p>
-            <div className="flex flex-wrap gap-2 text-[10px] font-semibold text-white/80">
-              <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">Ruang Kuliah GKB</span>
-              <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">Lab Komputer & AI</span>
-              <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">Perpustakaan Pusat</span>
-              <span className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10">Fasilitas Sanitasi</span>
+          {/* Kutipan Pengelola Sarpras / Tendik (Disamarkan) */}
+          <div className="pt-4 border-t border-white/15">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-300 font-bold text-xs flex items-center justify-center shrink-0 border border-sky-400/30">
+                TK
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white font-sans">
+                  Subbagian Sarana &amp; Prasarana
+                </p>
+                <p className="text-[10px] text-white/60 font-sans">
+                  Gedung Departemen Teknik Komputer Undip, Tembalang
+                </p>
+              </div>
             </div>
           </div>
         </div>

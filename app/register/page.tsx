@@ -383,56 +383,57 @@ function RegisterForm() {
           </div>
         </div>
 
-        {/* Kolom Kanan: Branded Showcase Panel */}
-        <div
-          className="hidden lg:flex lg:col-span-6 p-12 flex-col justify-between relative overflow-hidden"
-          style={{
-            background: 'linear-gradient(145deg, #1e3a8a 0%, #172554 60%, #0f172a 100%)',
-          }}
-        >
-          {/* Soft 3D Glow Orbs */}
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-sky-400/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+        {/* Kolom Kanan: Panel Info Departemen Teknik Komputer Undip */}
+        <div className="hidden lg:flex lg:col-span-6 p-10 xl:p-12 flex-col justify-between bg-primary text-white relative">
+          <div>
+            <div className="flex items-center justify-between pb-4 border-b border-white/15">
+              <div>
+                <p className="text-[11px] font-bold text-sky-300 tracking-wider uppercase font-sans">
+                  Departemen Teknik Komputer
+                </p>
+                <p className="text-xs text-white/70 font-sans">
+                  Fakultas Teknik Universitas Diponegoro
+                </p>
+              </div>
+              <span className="text-[10px] font-semibold px-2.5 py-1 rounded-md bg-white/10 text-white font-mono">
+                Registrasi Sivitas
+              </span>
+            </div>
 
-          {/* Top Label */}
-          <div className="relative z-10">
-            <span className="text-xs font-bold text-sky-300 tracking-wider uppercase">
-              Komunitas Peduli Kampus
-            </span>
+            <div className="mt-8 space-y-4">
+              <h2 className="text-2xl xl:text-3xl font-extrabold text-white leading-snug font-display">
+                Kolaborasi Menjaga Fasilitas Belajar &amp; Riset Kampus
+              </h2>
+              <p className="text-xs xl:text-sm text-white/80 leading-relaxed font-sans">
+                Setiap laporan yang Anda sampaikan membantu tim pengelola sarana prasarana menindaklanjuti perbaikan secara transparan dan terukur.
+              </p>
+            </div>
           </div>
 
-          {/* Middle: Headline & Feature Highlights */}
-          <div className="relative z-10 space-y-8 my-auto">
-            <h2 className="text-3xl font-extrabold text-white leading-tight font-display">
-              Satu Laporan Anda, Menjaga Kenyamanan Seluruh Kampus.
-            </h2>
-
-            <div className="space-y-3">
-              <div className="p-4 rounded-[20px] bg-white/10 backdrop-blur-md border border-white/10 flex items-center gap-3.5">
-                <div className="w-8 h-8 rounded-[12px] bg-mint/20 text-mint flex items-center justify-center font-bold text-sm">
-                  ✓
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white font-sans">Lapor Instan 1 Menit</h4>
-                  <p className="text-[11px] text-white/60">Pilih ruangan, foto kerusakan, otomatis terdata.</p>
-                </div>
+          <div className="space-y-3 my-8">
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3">
+              <div className="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                1
               </div>
+              <div>
+                <h4 className="text-xs font-bold text-white font-sans">Respons Cepat &amp; Terdata</h4>
+                <p className="text-[11px] text-white/70 mt-0.5">Laporan langsung masuk ke dashboard monitoring staf sarana prasarana.</p>
+              </div>
+            </div>
 
-              <div className="p-4 rounded-[20px] bg-white/10 backdrop-blur-md border border-white/10 flex items-center gap-3.5">
-                <div className="w-8 h-8 rounded-[12px] bg-accent/20 text-accent flex items-center justify-center font-bold text-sm">
-                  ✓
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white font-sans">Bisa Dipakai Saat Offline</h4>
-                  <p className="text-[11px] text-white/60">Laporan tersimpan di memori saat tidak ada sinyal internet.</p>
-                </div>
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3">
+              <div className="w-6 h-6 rounded-md bg-sky-500/20 text-sky-300 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                2
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-white font-sans">Mendukung Akses Offline</h4>
+                <p className="text-[11px] text-white/70 mt-0.5">Tetap bisa membuat laporan di lokasi minim sinyal, otomatis tersinkron saat online.</p>
               </div>
             </div>
           </div>
 
-          {/* Bottom Trust Row */}
-          <div className="relative z-10 pt-6 border-t border-white/10 text-white/60 text-[11px] font-sans">
-            LaporKampus — Proyek Tugas Akhir Praktikum Pemrograman Perangkat Bergerak
+          <div className="pt-4 border-t border-white/15 text-white/60 text-[11px] font-sans">
+            LaporKampus — Departemen Teknik Komputer Fakultas Teknik Universitas Diponegoro
           </div>
         </div>
       </div>

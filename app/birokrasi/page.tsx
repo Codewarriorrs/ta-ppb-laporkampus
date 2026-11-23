@@ -179,7 +179,7 @@ export default function BirokrasiDashboardPage() {
               {getGreeting()}, {currentUser?.name || 'Staf Birokrasi'}
             </h1>
             <p className="text-white/80 text-xs sm:text-sm mt-1 max-w-xl">
-              Pantau laporan kerusakan sarana prasarana kampus dan kirimkan tanggapan resmi kepada mahasiswa secara real-time.
+              Pantau laporan kerusakan sarana prasarana Departemen Teknik Komputer FT Undip dan kirimkan tanggapan resmi secara real-time.
             </p>
           </div>
 
