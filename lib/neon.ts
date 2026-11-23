@@ -71,6 +71,22 @@ export async function neonCreateUser(
   return (rows[0] as unknown as Omit<NeonUser, 'password_hash'>) || null;
 }
 
+export async function neonUpdateUnverifiedUser(
+  name: string,
+  email: string,
+  password_hash: string,
+  otp: string
+): Promise<boolean> {
+  if (!sql) return false;
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+  await sql`
+    UPDATE users
+    SET name = ${name}, password_hash = ${password_hash}, verification_otp = ${otp}, otp_expires_at = ${expiresAt}
+    WHERE LOWER(email) = LOWER(${email}) AND email_verified = false
+  `;
+  return true;
+}
+
 export async function neonSetUserOtp(email: string, otp: string): Promise<boolean> {
   if (!sql) return false;
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();

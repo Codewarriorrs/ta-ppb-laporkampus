@@ -147,7 +147,7 @@ export async function PUT(request: Request) {
           success: emailResult.success,
           message: emailResult.success
             ? 'Kode OTP baru berhasil dikirimkan ke email Anda.'
-            : 'Email gagal dikirim. Silakan periksa konfigurasi Brevo lalu coba lagi.',
+            : 'Email gagal dikirim: ' + (emailResult.error || 'Periksa kuota/konfigurasi Brevo'),
           devOtp: !emailResult.success && process.env.NODE_ENV !== 'production' ? newOtp : undefined,
         },
         { status: emailResult.success ? 200 : 502 }
@@ -186,7 +186,7 @@ export async function PUT(request: Request) {
           success: emailResult.success,
           message: emailResult.success
             ? 'Kode OTP baru berhasil dikirimkan ke email Anda.'
-            : 'Email gagal dikirim. Silakan periksa konfigurasi Brevo lalu coba lagi.',
+            : 'Email gagal dikirim: ' + (emailResult.error || 'Periksa kuota/konfigurasi Brevo'),
           devOtp: !emailResult.success && process.env.NODE_ENV !== 'production' ? newOtp : undefined,
         },
         { status: emailResult.success ? 200 : 502 }

@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { isNeonConfigured, neonFindUserByEmail, neonCreateUser } from '@/lib/neon';
+import { isNeonConfigured, neonFindUserByEmail, neonCreateUser, neonUpdateUnverifiedUser } from '@/lib/neon';
 import { hashPassword } from '@/lib/auth';
 import { sendOtpVerificationEmail } from '@/lib/brevo';
 import { localStore } from '@/lib/localStore';
@@ -39,25 +39,30 @@ export async function POST(request: Request) {
     // 1. NEON POSTGRES
     if (isNeonConfigured) {
       const existingUser = await neonFindUserByEmail(cleanEmail);
-      if (existingUser) {
+      if (existingUser && existingUser.email_verified) {
         return NextResponse.json(
           {
             success: false,
             data: null,
-            message: 'Email sudah terdaftar. Silakan login atau gunakan email lain.',
+            message: 'Email sudah terdaftar dan terverifikasi. Silakan langsung login.',
           },
           { status: 409 }
         );
       }
 
       const password_hash = await hashPassword(password);
-      const newUser = await neonCreateUser(name, cleanEmail, password_hash, 'mahasiswa', false, otp);
 
-      if (!newUser) {
-        return NextResponse.json(
-          { success: false, data: null, message: 'Gagal membuat akun di database Neon.' },
-          { status: 500 }
-        );
+      if (existingUser && !existingUser.email_verified) {
+        // User sebelumnya mendaftar tapi belum diverifikasi: update info & generate OTP baru
+        await neonUpdateUnverifiedUser(name, cleanEmail, password_hash, otp);
+      } else {
+        const newUser = await neonCreateUser(name, cleanEmail, password_hash, 'mahasiswa', false, otp);
+        if (!newUser) {
+          return NextResponse.json(
+            { success: false, data: null, message: 'Gagal membuat akun di database Neon.' },
+            { status: 500 }
+          );
+        }
       }
 
       const emailResult = await sendOtpVerificationEmail({
@@ -75,7 +80,7 @@ export async function POST(request: Request) {
           devOtp: !emailResult.success && process.env.NODE_ENV !== 'production' ? otp : undefined,
           message: emailResult.success
             ? 'Pendaftaran berhasil! Kode verifikasi OTP telah dikirimkan ke email Anda.'
-            : 'Akun berhasil dibuat, tetapi email verifikasi gagal dikirim. Silakan kirim ulang kode setelah memeriksa konfigurasi email.',
+            : 'Akun berhasil didaftarkan, namun email gagal dikirim: ' + (emailResult.error || 'Periksa kuota/konfigurasi Brevo'),
         },
         { status: 201 }
       );
