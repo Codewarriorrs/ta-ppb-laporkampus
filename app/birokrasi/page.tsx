@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ShieldAlert,
   Clock,
@@ -23,7 +24,6 @@ import { Report, Facility, ReportStatus, REPORT_STATUSES, CATEGORIES } from '@/t
 import { StatCard } from '@/components/ui/StatCard';
 import StatusBadge from '@/components/report/StatusBadge';
 import CategoryBadge from '@/components/report/CategoryBadge';
-import { BackButton } from '@/components/ui/BackButton';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 
@@ -36,6 +36,7 @@ function getGreeting() {
 }
 
 export default function BirokrasiDashboardPage() {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [reports, setReports] = useState<Report[]>([]);
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -58,9 +59,9 @@ export default function BirokrasiDashboardPage() {
     setLoading(true);
     try {
       const [userRes, reportsRes, facilitiesRes] = await Promise.all([
-        fetch('/api/auth/me').then((r) => r.json()),
-        fetch('/api/reports').then((r) => r.json()),
-        fetch('/api/facilities').then((r) => r.json()),
+        fetch('/api/auth/me', { cache: 'no-store' }).then((r) => r.json()),
+        fetch('/api/reports', { cache: 'no-store' }).then((r) => r.json()),
+        fetch('/api/facilities', { cache: 'no-store' }).then((r) => r.json()),
       ]);
 
       if (userRes.success) setCurrentUser(userRes.data);
@@ -136,25 +137,25 @@ export default function BirokrasiDashboardPage() {
         throw new Error(json.message || 'Gagal menyimpan tanggapan.');
       }
 
-      setModalSuccess('Tanggapan resmi birokrasi berhasil disimpan!');
-      // Update local state
+      // Update local state langsung tanpa perlu refresh manual
       setReports((prev) =>
         prev.map((r) =>
           r.id === selectedReport.id
             ? {
                 ...r,
+                ...(json.data || {}),
                 status: feedbackStatus,
-                feedback: feedbackText,
+                feedback: feedbackText.trim(),
                 feedback_by_name: currentUser?.name || 'Birokrasi Sarpras',
-                feedback_at: new Date().toISOString(),
+                feedback_at: json.data?.feedback_at || new Date().toISOString(),
               }
             : r
         )
       );
 
-      setTimeout(() => {
-        setSelectedReport(null);
-      }, 1200);
+      setSelectedReport(null);
+      setModalSuccess(null);
+      router.refresh();
     } catch (err: any) {
       setModalError(err.message || 'Terjadi kesalahan sistem.');
     } finally {
@@ -181,10 +182,6 @@ export default function BirokrasiDashboardPage() {
             <p className="text-white/80 text-xs sm:text-sm mt-1 max-w-xl">
               Pantau laporan kerusakan sarana prasarana Departemen Teknik Komputer FT Undip dan kirimkan tanggapan resmi secara real-time.
             </p>
-          </div>
-
-          <div className="shrink-0 flex items-center gap-2">
-            <BackButton href="/" label="Ke Beranda" variant="outline" size="sm" className="bg-white/10 text-white border-white/30 hover:bg-white/20" />
           </div>
         </div>
 

@@ -49,9 +49,16 @@ export async function middleware(request: NextRequest) {
 
   const isPublicPath = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path + '/'));
 
-  // Jika sudah login dan mengakses login/register, arahkan ke beranda
+  // Jika sudah login dan mengakses login/register, arahkan ke beranda sesuai role
   if (isAuthenticated && (pathname === '/login' || pathname === '/register')) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(
+      new URL(userRole === 'birokrasi' ? '/birokrasi' : '/', request.url)
+    );
+  }
+
+  // Untuk akun birokrasi, halaman utama (/) diarahkan ke dashboard birokrasi
+  if (isAuthenticated && userRole === 'birokrasi' && pathname === '/') {
+    return NextResponse.redirect(new URL('/birokrasi', request.url));
   }
 
   // Jika belum login dan mengakses halaman yang dilindungi

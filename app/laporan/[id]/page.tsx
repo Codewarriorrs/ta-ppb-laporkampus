@@ -56,7 +56,7 @@ export default function ReportDetailPage() {
 
     // 2. Ambil detail laporan
     if (id) {
-      fetch(`/api/reports/${id}`)
+      fetch(`/api/reports/${id}`, { cache: 'no-store' })
         .then((res) => res.json())
         .then((res) => {
           if (res.success && res.data) {
@@ -113,9 +113,18 @@ export default function ReportDetailPage() {
 
       const json = await res.json();
       if (res.ok && json.success) {
-        setReport(json.data);
-        setFeedbackSuccess('Tanggapan resmi birokrasi berhasil disimpan!');
-        setTimeout(() => setFeedbackSuccess(null), 4000);
+        setReport((prev) => ({
+          ...(prev || {}),
+          ...(json.data || {}),
+          status: feedbackStatusInput,
+          feedback: feedbackInput.trim(),
+        }));
+        router.refresh();
+        if (window.history.length > 1) {
+          router.back();
+        } else {
+          router.push(currentUser?.role === 'birokrasi' ? '/birokrasi' : '/');
+        }
       } else {
         alert(json.message || 'Gagal menyimpan tanggapan');
       }
@@ -134,7 +143,7 @@ export default function ReportDetailPage() {
       <AppHeader
         title="Detail Laporan Fasilitas"
         showBack={true}
-        backHref="/"
+        backHref={isBirokrasi ? '/birokrasi' : '/'}
         rightAction={
           isOwner ? (
             <div className="flex items-center gap-2">
