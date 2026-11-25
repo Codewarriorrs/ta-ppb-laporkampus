@@ -16,7 +16,6 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(urlError || '');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,11 +60,6 @@ function LoginForm() {
       setErrorMessage('Terjadi gangguan jaringan ke server. Coba beberapa saat lagi.');
       setLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    setGoogleLoading(true);
-    window.location.href = `/api/auth/google?redirect=${encodeURIComponent(redirect)}`;
   };
 
   return (

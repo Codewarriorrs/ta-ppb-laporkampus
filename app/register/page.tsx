@@ -26,7 +26,6 @@ function RegisterForm() {
 
   // Status
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -145,11 +144,6 @@ function RegisterForm() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoogleLogin = () => {
-    setGoogleLoading(true);
-    window.location.href = `/api/auth/google?redirect=${encodeURIComponent(redirect)}`;
   };
 
   return (
