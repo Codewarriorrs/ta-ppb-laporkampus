@@ -10,7 +10,10 @@ export const metadata: Metadata = {
   description: 'Sistem pelaporan fasilitas dan sarana prasarana kampus berbasis web modern',
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/LaporKampus_Icon.png', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
     apple: '/icons/apple-touch-icon.png',
   },
   appleWebApp: {
