@@ -5,7 +5,7 @@ import { Report, CATEGORIES } from '@/types';
 import ReportCard from '@/components/report/ReportCard';
 import { ReportCardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
-import { Search, RefreshCw, AlertCircle, LayoutDashboard, Plus, Sparkles } from 'lucide-react';
+import { Search, RefreshCw, AlertCircle, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { getOfflineReports, offlineItemToReport } from '@/lib/offlineQueue';
 import AppLogo, { AppLogoIcon } from '@/components/ui/AppLogo';
@@ -174,13 +174,6 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 relative z-10">
-            <Link
-              href="/birokrasi"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-surface-strong hover:bg-neutral-100 text-neutral-800 text-xs font-bold rounded-[18px] border border-neutral-200/70 transition-all shadow-soft-3d"
-            >
-              <LayoutDashboard className="w-4 h-4 text-primary" />
-              <span>Dashboard Birokrasi</span>
-            </Link>
             <Link
               href="/lapor"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-[18px] shadow-btn-3d transition-all active:scale-95"

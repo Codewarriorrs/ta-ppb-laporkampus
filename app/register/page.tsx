@@ -273,7 +273,7 @@ function RegisterForm() {
               /* Step 2: Form Verifikasi OTP Brevo */
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-primary uppercase tracking-wider bg-primary-50 px-2.5 py-1 rounded-full border border-primary-100">
+                  <span className="block text-[11px] font-bold text-primary uppercase tracking-wider">
                     Langkah Verifikasi
                   </span>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight font-display">

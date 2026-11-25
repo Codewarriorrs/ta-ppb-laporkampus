@@ -6,7 +6,7 @@ import { Facility } from '@/types';
 import AppHeader from '@/components/layout/AppHeader';
 import { FacilityCardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
-import { Building2, MapPin, FileText, Search, ChevronRight, AlertCircle, Sparkles } from 'lucide-react';
+import { Building2, MapPin, FileText, Search, ChevronRight, AlertCircle } from 'lucide-react';
 
 export default function FacilitiesPage() {
   const [facilities, setFacilities] = useState<Facility[]>([]);
@@ -129,19 +129,19 @@ export default function FacilitiesPage() {
                       <Building2 className="w-8 h-8 stroke-[1.5]" />
                     </div>
                   )}
-
-                  {/* Badge Jumlah Laporan */}
-                  <div className="absolute top-3 right-3 bg-neutral-900/80 backdrop-blur-md text-white text-[10px] font-extrabold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md">
-                    <FileText className="w-3 h-3 text-accent" />
-                    <span>{facility.report_count || 0} Laporan</span>
-                  </div>
                 </div>
 
                 {/* Konten Card */}
                 <div className="p-5 space-y-2">
-                  <div className="flex items-center text-[11px] text-neutral-400 font-bold gap-1 uppercase tracking-wider font-sans">
-                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                    <span className="truncate">{facility.building}</span>
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-neutral-400 font-bold uppercase tracking-wider font-sans">
+                    <div className="flex items-center gap-1 min-w-0">
+                      <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <span className="truncate">{facility.building}</span>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-neutral-500 normal-case tracking-normal shrink-0">
+                      <FileText className="w-3 h-3 text-neutral-400" />
+                      {facility.report_count || 0} Laporan
+                    </span>
                   </div>
 
                   <h3 className="font-extrabold text-neutral-900 text-sm line-clamp-1 group-hover:text-primary transition-colors font-display">

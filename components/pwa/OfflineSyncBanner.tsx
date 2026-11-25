@@ -72,7 +72,7 @@ export function OfflineSyncBanner() {
             <span>Mode Offline aktif. Laporan baru tetap tersimpan di perangkat.</span>
           </div>
           {offlineCount > 0 && (
-            <span className="bg-amber-400 text-neutral-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full shrink-0">
+            <span className="text-amber-400 text-[11px] font-bold shrink-0">
               {offlineCount} antrean
             </span>
           )}

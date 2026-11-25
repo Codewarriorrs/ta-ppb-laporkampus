@@ -290,11 +290,11 @@ export default function BirokrasiDashboardPage() {
                 >
                   <span className="capitalize">{st === 'Semua' ? 'Semua Laporan' : st}</span>
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                      active ? 'bg-white/20 text-white' : 'bg-neutral-200 text-neutral-700'
+                    className={`text-[11px] font-bold ${
+                      active ? 'text-white/85' : 'text-neutral-400'
                     }`}
                   >
-                    {count}
+                    ({count})
                   </span>
                 </button>
               );

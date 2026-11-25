@@ -85,10 +85,10 @@ export default function ProfilePage() {
                 <h2 className="text-base font-bold text-neutral-900 truncate">
                   {loading ? 'Memuat data...' : user?.name || 'Mahasiswa'}
                 </h2>
-                <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${
+                <span className={`text-[11px] font-bold shrink-0 ${
                   user?.role === 'birokrasi'
-                    ? 'text-primary bg-primary-50 border-primary-200'
-                    : 'text-neutral-700 bg-neutral-100 border-neutral-200'
+                    ? 'text-primary'
+                    : 'text-neutral-500'
                 }`}>
                   {user?.role === 'birokrasi' ? 'Birokrasi Kampus' : 'Mahasiswa'}
                 </span>
