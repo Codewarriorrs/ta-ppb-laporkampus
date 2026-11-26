@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { User, Facility, Report, UserRole, ReportStatus } from '@/types';
+import { User, Facility, Report, UserRole, ReportStatus, ReportPriority } from '@/types';
 
 const databaseUrl = process.env.DATABASE_URL || '';
 
@@ -205,7 +205,7 @@ export async function neonGetFacilityById(id: string) {
       COALESCE(r.status, 'menunggu') AS status,
       r.feedback,
       r.feedback_by,
-      r.feedback_at,
+      r.priority, r.processed_at, r.deadline_at, r.feedback_at,
       r.created_at,
       u.name AS user_name,
       fb.name AS feedback_by_name
@@ -247,7 +247,7 @@ export async function neonGetReports(q = '', category = '', status = '') {
           COALESCE(r.status, 'menunggu') AS status,
           r.feedback,
           r.feedback_by,
-          r.feedback_at,
+          r.priority, r.processed_at, r.deadline_at, r.feedback_at,
           r.created_at,
           f.name AS facility_name,
           f.building AS facility_building,
@@ -276,7 +276,7 @@ export async function neonGetReports(q = '', category = '', status = '') {
           COALESCE(r.status, 'menunggu') AS status,
           r.feedback,
           r.feedback_by,
-          r.feedback_at,
+          r.priority, r.processed_at, r.deadline_at, r.feedback_at,
           r.created_at,
           f.name AS facility_name,
           f.building AS facility_building,
@@ -307,7 +307,7 @@ export async function neonGetReports(q = '', category = '', status = '') {
         COALESCE(r.status, 'menunggu') AS status,
         r.feedback,
         r.feedback_by,
-        r.feedback_at,
+        r.priority, r.processed_at, r.deadline_at, r.feedback_at,
         r.created_at,
         f.name AS facility_name,
         f.building AS facility_building,
@@ -336,7 +336,7 @@ export async function neonGetReports(q = '', category = '', status = '') {
       COALESCE(r.status, 'menunggu') AS status,
       r.feedback,
       r.feedback_by,
-      r.feedback_at,
+      r.priority, r.processed_at, r.deadline_at, r.feedback_at,
       r.created_at,
       f.name AS facility_name,
       f.building AS facility_building,
@@ -366,7 +366,7 @@ export async function neonGetReportsByUserId(userId: string) {
       COALESCE(r.status, 'menunggu') AS status,
       r.feedback,
       r.feedback_by,
-      r.feedback_at,
+      r.priority, r.processed_at, r.deadline_at, r.feedback_at,
       r.created_at,
       f.name AS facility_name,
       f.building AS facility_building,
@@ -397,7 +397,7 @@ export async function neonGetReportById(id: string): Promise<Report | null> {
       COALESCE(r.status, 'menunggu') AS status,
       r.feedback,
       r.feedback_by,
-      r.feedback_at,
+      r.priority, r.processed_at, r.deadline_at, r.feedback_at,
       r.created_at,
       f.name AS facility_name,
       f.building AS facility_building,
@@ -469,18 +469,38 @@ export async function neonUpdateReportFeedback(
   id: string,
   feedback: string,
   status: ReportStatus,
-  birokrasiUserId: string
+  birokrasiUserId: string,
+  priority: ReportPriority = 'sedang'
 ) {
   if (!sql) return null;
 
-  await sql`
-    UPDATE reports SET
-      feedback = ${feedback},
-      status = ${status},
-      feedback_by = ${birokrasiUserId},
-      feedback_at = NOW()
-    WHERE id = ${id}
-  `;
+  const days = priority === 'tinggi' ? 3 : priority === 'rendah' ? 7 : 5;
+  const nowIso = new Date().toISOString();
+  const deadlineIso = new Date(Date.now() + days * 86400000).toISOString();
+
+  if (status === 'diproses') {
+    await sql`
+      UPDATE reports SET
+        feedback = ${feedback},
+        status = ${status},
+        priority = ${priority},
+        processed_at = ${nowIso},
+        deadline_at = ${deadlineIso},
+        feedback_by = ${birokrasiUserId},
+        feedback_at = NOW()
+      WHERE id = ${id}
+    `;
+  } else {
+    await sql`
+      UPDATE reports SET
+        feedback = ${feedback},
+        status = ${status},
+        priority = COALESCE(${priority}, priority),
+        feedback_by = ${birokrasiUserId},
+        feedback_at = NOW()
+      WHERE id = ${id}
+    `;
+  }
 
   return neonGetReportById(id);
 }

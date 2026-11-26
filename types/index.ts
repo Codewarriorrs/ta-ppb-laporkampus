@@ -21,6 +21,27 @@ export type UserRole = 'mahasiswa' | 'birokrasi';
 
 export type ReportStatus = 'menunggu' | 'diproses' | 'selesai' | 'ditolak';
 
+export type ReportPriority = 'rendah' | 'sedang' | 'tinggi';
+
+export const REPORT_PRIORITIES: {
+  id: ReportPriority;
+  label: string;
+  days: number;
+  textColor: string;
+}[] = [
+  { id: 'rendah', label: 'Rendah', days: 7, textColor: 'text-emerald-700' },
+  { id: 'sedang', label: 'Sedang', days: 5, textColor: 'text-amber-700' },
+  { id: 'tinggi', label: 'Tinggi', days: 3, textColor: 'text-rose-700' },
+];
+
+export function isReportOverdue(report: {
+  status?: ReportStatus;
+  deadline_at?: string | null;
+}): boolean {
+  if (report.status !== 'diproses' || !report.deadline_at) return false;
+  return new Date(report.deadline_at).getTime() < Date.now();
+}
+
 export const REPORT_STATUSES: { id: ReportStatus; label: string; color: string }[] = [
   { id: 'menunggu', label: 'Menunggu', color: 'bg-amber-50 text-amber-700 border-amber-200' },
   { id: 'diproses', label: 'Diproses', color: 'bg-blue-50 text-blue-700 border-blue-200' },
@@ -58,6 +79,9 @@ export interface Report {
   latitude?: number | null;
   longitude?: number | null;
   status?: ReportStatus;
+  priority?: ReportPriority | null;
+  processed_at?: string | null;
+  deadline_at?: string | null;
   feedback?: string | null;
   feedback_by?: string | null;
   feedback_by_name?: string | null;

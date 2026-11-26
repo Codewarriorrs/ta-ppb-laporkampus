@@ -309,17 +309,34 @@ class LocalDataStore {
     };
     return this.data.reports[idx];
   }
-  updateReportFeedback(id: string, feedback: string, status: any, birokrasiUserId: string) {
+  updateReportFeedback(
+    id: string,
+    feedback: string,
+    status: any,
+    birokrasiUserId: string,
+    priority: 'rendah' | 'sedang' | 'tinggi' = 'sedang'
+  ) {
     const idx = this.data.reports.findIndex((r) => r.id === id);
     if (idx === -1) return null;
     const birokrasiUser = this.findUserById(birokrasiUserId);
+    const nowIso = new Date().toISOString();
+    const days = priority === 'tinggi' ? 3 : priority === 'rendah' ? 7 : 5;
+    const deadlineIso = new Date(Date.now() + days * 86400000).toISOString();
+
     this.data.reports[idx] = {
       ...this.data.reports[idx],
       feedback,
       status,
+      priority,
+      ...(status === 'diproses'
+        ? {
+            processed_at: nowIso,
+            deadline_at: deadlineIso,
+          }
+        : {}),
       feedback_by: birokrasiUserId,
       feedback_by_name: birokrasiUser ? birokrasiUser.name : 'Pihak Kampus',
-      feedback_at: new Date().toISOString(),
+      feedback_at: nowIso,
     };
     return this.data.reports[idx];
   }

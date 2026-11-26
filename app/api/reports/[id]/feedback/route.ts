@@ -4,11 +4,12 @@ import { getAuthUserFromRequest } from '@/lib/auth';
 import { isNeonConfigured, neonUpdateReportFeedback, neonGetReportById } from '@/lib/neon';
 import { isSupabaseConfigured, supabaseServer } from '@/lib/supabase';
 import { localStore } from '@/lib/localStore';
-import { ReportStatus } from '@/types';
+import { ReportPriority, ReportStatus } from '@/types';
 
 const feedbackSchema = z.object({
   feedback: z.string().min(3, 'Tanggapan minimal 3 karakter'),
   status: z.enum(['menunggu', 'diproses', 'selesai', 'ditolak']),
+  priority: z.enum(['rendah', 'sedang', 'tinggi']).optional().nullable(),
 });
 
 export async function POST(
@@ -45,8 +46,9 @@ export async function POST(
       );
     }
 
-    const { feedback, status } = validated.data;
+    const { feedback, status, priority } = validated.data;
     const reportId = params.id;
+    const selectedPriority: ReportPriority = (priority as ReportPriority) || 'sedang';
 
     // 1. NEON POSTGRES
     if (isNeonConfigured) {
@@ -58,7 +60,13 @@ export async function POST(
         );
       }
 
-      const updated = await neonUpdateReportFeedback(reportId, feedback, status as ReportStatus, authUser.userId);
+      const updated = await neonUpdateReportFeedback(
+        reportId,
+        feedback,
+        status as ReportStatus,
+        authUser.userId,
+        selectedPriority
+      );
       return NextResponse.json(
         {
           success: true,
@@ -71,14 +79,25 @@ export async function POST(
 
     // 2. SUPABASE POSTGRES
     if (isSupabaseConfigured) {
+      const days = selectedPriority === 'tinggi' ? 3 : selectedPriority === 'rendah' ? 7 : 5;
+      const nowIso = new Date().toISOString();
+      const deadlineIso = new Date(Date.now() + days * 86400000).toISOString();
+
+      const updatePayload: Record<string, any> = {
+        feedback,
+        status,
+        priority: selectedPriority,
+        feedback_by: authUser.userId,
+        feedback_at: nowIso,
+      };
+      if (status === 'diproses') {
+        updatePayload.processed_at = nowIso;
+        updatePayload.deadline_at = deadlineIso;
+      }
+
       const { data: updated, error } = await supabaseServer
         .from('reports')
-        .update({
-          feedback,
-          status,
-          feedback_by: authUser.userId,
-          feedback_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', reportId)
         .select()
         .single();
@@ -101,7 +120,13 @@ export async function POST(
     }
 
     // 3. FALLBACK LOCAL STORE
-    const updated = localStore.updateReportFeedback(reportId, feedback, status as ReportStatus, authUser.userId);
+    const updated = localStore.updateReportFeedback(
+      reportId,
+      feedback,
+      status as ReportStatus,
+      authUser.userId,
+      selectedPriority
+    );
     if (!updated) {
       return NextResponse.json(
         { success: false, data: null, message: 'Laporan tidak ditemukan.' },

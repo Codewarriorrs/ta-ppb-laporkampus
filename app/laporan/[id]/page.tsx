@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Report, ReportStatus } from '@/types';
+import { Report, ReportStatus, ReportPriority, REPORT_PRIORITIES, isReportOverdue } from '@/types';
 import AppHeader from '@/components/layout/AppHeader';
 import CategoryBadge from '@/components/report/CategoryBadge';
 import StatusBadge from '@/components/report/StatusBadge';
@@ -22,7 +22,9 @@ import {
   ShieldCheck,
   MessageSquare,
   Send,
-  Clock
+  Clock,
+  Flag,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function ReportDetailPage() {
@@ -40,6 +42,7 @@ export default function ReportDetailPage() {
   // Birokrasi quick feedback form
   const [feedbackInput, setFeedbackInput] = useState('');
   const [feedbackStatusInput, setFeedbackStatusInput] = useState<ReportStatus>('diproses');
+  const [feedbackPriorityInput, setFeedbackPriorityInput] = useState<ReportPriority>('sedang');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [feedbackSuccess, setFeedbackSuccess] = useState<string | null>(null);
 
@@ -63,6 +66,7 @@ export default function ReportDetailPage() {
             setReport(res.data);
             setFeedbackInput(res.data.feedback || '');
             setFeedbackStatusInput(res.data.status || 'diproses');
+            setFeedbackPriorityInput(res.data.priority || 'sedang');
           } else {
             setError(res.message || 'Laporan tidak ditemukan');
           }
@@ -108,6 +112,7 @@ export default function ReportDetailPage() {
         body: JSON.stringify({
           feedback: feedbackInput.trim(),
           status: feedbackStatusInput,
+          priority: feedbackPriorityInput,
         }),
       });
 
@@ -225,6 +230,49 @@ export default function ReportDetailPage() {
                   <StatusBadge status={report.status} />
                 </div>
 
+                {/* Info Prioritas & Batas Waktu */}
+                {(report.priority || report.deadline_at) && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs pt-1">
+                    {report.priority && (
+                      <div className="inline-flex items-center gap-1.5 font-bold">
+                        <Flag className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-neutral-600">Prioritas:</span>
+                        <span
+                          className={
+                            REPORT_PRIORITIES.find((p) => p.id === report.priority)?.textColor ||
+                            'text-neutral-900'
+                          }
+                        >
+                          {REPORT_PRIORITIES.find((p) => p.id === report.priority)?.label ||
+                            report.priority}
+                        </span>
+                      </div>
+                    )}
+                    {report.deadline_at && (
+                      <div className="inline-flex items-center gap-1.5 text-neutral-600 font-semibold">
+                        <Clock className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>Batas Waktu:</span>
+                        <span className={isReportOverdue(report) ? 'text-red-600 font-bold' : 'text-neutral-900'}>
+                          {new Date(report.deadline_at).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {isReportOverdue(report) && (
+                  <div className="p-3.5 bg-red-50 border-2 animate-overdue-border rounded-2xl flex items-start gap-2.5 text-xs text-red-700 font-bold">
+                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                    <span>Laporan Melewati Batas Waktu, Mohon ditindak lanjuti</span>
+                  </div>
+                )}
+
                 {report.feedback ? (
                   <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-2">
                     <p className="text-xs text-neutral-800 leading-relaxed font-medium">
@@ -272,6 +320,25 @@ export default function ReportDetailPage() {
                           {st}
                         </button>
                       ))}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-neutral-600 mb-1.5">Prioritas & Batas Waktu:</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {REPORT_PRIORITIES.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => setFeedbackPriorityInput(p.id)}
+                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border transition-all text-center ${
+                              feedbackPriorityInput === p.id
+                                ? 'bg-primary text-white border-primary shadow-xs'
+                                : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100'
+                            }`}
+                          >
+                            {p.label} ({p.days} Hari)
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <textarea
                       rows={3}

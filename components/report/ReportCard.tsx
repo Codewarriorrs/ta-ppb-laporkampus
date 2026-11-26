@@ -1,9 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
-import { Report } from '@/types';
+import { Report, REPORT_PRIORITIES, isReportOverdue } from '@/types';
 import CategoryBadge from './CategoryBadge';
 import StatusBadge from './StatusBadge';
-import { MapPin, Calendar, Image as ImageIcon, MessageSquare } from 'lucide-react';
+import { MapPin, Calendar, Image as ImageIcon, MessageSquare, AlertTriangle, Flag } from 'lucide-react';
 
 interface ReportCardProps {
   report: Report;
@@ -31,10 +31,19 @@ export function formatTimeAgo(dateString: string): string {
 }
 
 export default function ReportCard({ report }: ReportCardProps) {
+  const overdue = isReportOverdue(report);
+  const priorityInfo = report.priority
+    ? REPORT_PRIORITIES.find((p) => p.id === report.priority)
+    : null;
+
   return (
     <Link
       href={`/laporan/${report.id}`}
-      className="block bg-surface rounded-[24px] border border-white/80 ring-1 ring-neutral-200/60 shadow-card-3d hover:shadow-soft-3d hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.99] overflow-hidden group"
+      className={`block bg-surface rounded-[24px] shadow-card-3d hover:shadow-soft-3d hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.99] overflow-hidden group ${
+        overdue
+          ? 'border-2 animate-overdue-border'
+          : 'border border-white/80 ring-1 ring-neutral-200/60'
+      }`}
     >
       <div className="flex p-4 gap-4">
         {/* Foto Thumbnail */}
@@ -74,6 +83,23 @@ export default function ReportCard({ report }: ReportCardProps) {
           </div>
 
           <div>
+            {(priorityInfo || overdue) && (
+              <div className="mt-1.5 flex items-center gap-2.5 flex-wrap text-[11px] font-bold">
+                {priorityInfo && (
+                  <span className={`inline-flex items-center gap-1 ${priorityInfo.textColor}`}>
+                    <Flag className="w-3 h-3" />
+                    Prioritas {priorityInfo.label}
+                  </span>
+                )}
+                {overdue && (
+                  <span className="inline-flex items-center gap-1 text-red-600">
+                    <AlertTriangle className="w-3 h-3" />
+                    Melewati Batas Waktu
+                  </span>
+                )}
+              </div>
+            )}
+
             {report.feedback && (
               <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-primary font-semibold truncate bg-surface-strong px-2.5 py-1 rounded-[12px] border border-primary/15">
                 <MessageSquare className="w-3 h-3 shrink-0" />
